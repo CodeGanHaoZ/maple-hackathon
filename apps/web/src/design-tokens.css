@@ -1,0 +1,435 @@
+/* ==========================================================================
+   栖霞秋册 · Qixia Autumn UI — Design Tokens
+   秋日纸本国风范式 v1.0.0
+   --------------------------------------------------------------------------
+   用法：import 本文件后，所有颜色 / 间距 / 字体只能通过 var(--token) 引用。
+   禁止在业务 CSS 中硬编码色值（唯一例外：#fff / #000 / rgba(0,0,0,x)）。
+
+   色源说明：
+   · 枫阶 leaf-400→800 逐字取自栖霞山标识的三段渐变（叶尖橘 → 中段绯 → 山脚绛紫）
+   · 宣纸阶 paper 取自官方秋日物料的暖米白底，非纯白
+   · 靛青阶 indigo 取自拼贴插画的山影与夜色，是全范式唯一的冷色锚点
+   · 鎏金阶 gilt 取自「栖霞山」匾额金字
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------
+     1. 宣纸层 · Paper — 背景与容器
+     暖米白，模拟生宣与秋日光晕；纯白只允许出现在图片留白处
+     ------------------------------------------------------------------ */
+  --paper-000: #fffdf8; /* 抬升面 / 卡片底 */
+  --paper-050: #fdfaf3; /* 次级卡片 / 输入框底 */
+  --paper-100: #fbf7ef; /* 主背景（页面最底） */
+  --paper-200: #f4ede0; /* 分区背景 / 表头 */
+  --paper-300: #e8ddcb; /* 分隔带 / 图片占位 */
+  --paper-400: #d6c8b2; /* 弱描边 / 装饰线 */
+  --paper-500: #b3a48d; /* 禁用描边 */
+
+  /* ------------------------------------------------------------------
+     2. 墨层 · Ink — 文字与前景
+     不用纯黑：秋日纸本的黑应偏暖褐
+     ------------------------------------------------------------------ */
+  --ink-100: #a9a093; /* disabled 文字 */
+  --ink-200: #8a7f72; /* 仅 ≥24px 装饰性文字 / 图标 */
+  --ink-300: #746a5d; /* muted：说明、时间、辅助信息（AA 达标） */
+  --ink-400: #5c5347; /* 次级正文 */
+  --ink-500: #4c443b; /* 正文 */
+  --ink-600: #322c25; /* 小标题 */
+  --ink-700: #221e1a; /* 大标题 / 最强对比 */
+  --ink-900: #12100e; /* 匾额底 / 深色区块 */
+
+  /* ------------------------------------------------------------------
+     3. 枫阶 · Leaf — 品牌主色（唯一允许使用高饱和渐变的色族）
+     leaf-400 / 500 / 700 / 800 是标识渐变的四个锚点，禁止替换
+     ------------------------------------------------------------------ */
+  --leaf-050: #fdf1e9;
+  --leaf-100: #fbdccb;
+  --leaf-200: #f7b893;
+  --leaf-300: #f4915f;
+  --leaf-400: #f5773c; /* 叶尖 · 霞橘 */
+  --leaf-500: #ea2a3e; /* 霜红 */
+  --leaf-600: #c91442; /* 绯红 */
+  --leaf-700: #b00f63; /* 绛 */
+  --leaf-800: #8c0b7a; /* 暮紫 · 山脚 */
+  --leaf-900: #6b0962; /* 最深，仅遮罩用 */
+  --leaf-text: #c0163c; /* 文字专用红：5.74:1，正文明暗均达标 */
+
+  /* ------------------------------------------------------------------
+     4. 鎏金 · Gilt — 匾额金字、发丝线、荣誉
+     只作线与小面积，禁止大面积平涂
+     ------------------------------------------------------------------ */
+  --gilt-100: #fbf1da;
+  --gilt-200: #f3ddb2;
+  --gilt-300: #e5c083;
+  --gilt-400: #c99a4e;
+  --gilt-500: #a97b33; /* 金色描边 / 大字号 */
+  --gilt-600: #8a5f1f; /* 金色小字（AA 达标） */
+  --gilt-700: #6b4715;
+
+  /* ------------------------------------------------------------------
+     5. 靛青 · Indigo — 山影、夜景区块、信息色
+     全范式唯一的冷色；出现即为「远景 / 收束 / 沉静」
+     ------------------------------------------------------------------ */
+  --indigo-100: #e6ebf1;
+  --indigo-200: #c3cfdb;
+  --indigo-300: #8fa2b7;
+  --indigo-400: #5b7490;
+  --indigo-500: #3a5673;
+  --indigo-600: #2a4058;
+  --indigo-700: #1d3956; /* 主山影底 */
+  --indigo-800: #14263a;
+  --indigo-900: #0f1e2d;
+
+  /* ------------------------------------------------------------------
+     6. 苔绿 · Moss — 春日变体、成功态、叶柄细节
+     取色自官方春日海报的青绿水彩
+     ------------------------------------------------------------------ */
+  --moss-100: #eaf0e1;
+  --moss-200: #cbdaB4;
+  --moss-300: #a9be8c;
+  --moss-400: #6e8557; /* 大字号 / 图标 */
+  --moss-600: #4e6141; /* 小字（AA 达标） */
+
+  /* ------------------------------------------------------------------
+     7. 银杏 · Ginkgo — 警示、枫红期刻度、票券高亮
+     ------------------------------------------------------------------ */
+  --ginkgo-100: #fbefd2;
+  --ginkgo-200: #f2da9e;
+  --ginkgo-300: #e5be6a;
+  --ginkgo-400: #c79a34;
+  --ginkgo-600: #8f6b1c;
+
+  /* ------------------------------------------------------------------
+     8. 语义别名 · Semantic — 业务层只用这一层
+     ------------------------------------------------------------------ */
+  --color-bg: var(--paper-100);
+  --color-bg-subtle: var(--paper-200);
+  --color-surface: var(--paper-000);
+  --color-surface-2: var(--paper-050);
+  --color-surface-hover: var(--paper-200);
+  --color-input-bg: var(--paper-000);
+
+  --color-text: var(--ink-500);
+  --color-text-strong: var(--ink-700);
+  --color-text-subtle: var(--ink-400);
+  --color-text-muted: var(--ink-300);
+  --color-text-disabled: var(--ink-100);
+
+  --color-primary: var(--leaf-text);
+  --color-primary-hover: var(--leaf-600);
+  --color-primary-active: var(--leaf-700);
+  --color-primary-soft: var(--leaf-050);
+  --color-on-primary: var(--paper-000);
+
+  --color-accent: var(--gilt-500);
+  --color-accent-text: var(--gilt-600);
+  --color-accent-soft: var(--gilt-100);
+
+  --color-success: var(--moss-600);
+  --color-success-bg: #4e614114;
+  --color-warning: var(--ginkgo-600);
+  --color-warning-bg: #c79a341f;
+  --color-danger: var(--leaf-text);
+  --color-danger-bg: #c0163c14;
+  --color-info: var(--indigo-600);
+  --color-info-bg: #2a405814;
+
+  /* 深色区块（页脚 / 山影 / 夜间导览）内的反转语义 */
+  --color-bg-inverse: var(--indigo-700);
+  --color-text-inverse: var(--paper-100);
+  --color-text-inverse-muted: var(--paper-400);
+  --color-accent-inverse: var(--gilt-200);
+
+  /* ------------------------------------------------------------------
+     9. 描边 · Border — 纸本的边是「装订线」，恒 1px
+     ------------------------------------------------------------------ */
+  --border-hairline: 1px solid #4c443b1a;
+  --border-soft: 1px solid #4c443b2e;
+  --border-strong: 1px solid #4c443b4d;
+  --border-paper: 1px solid var(--paper-300);
+  --border-gilt: 1px solid #c99a4e66;
+  --border-leaf: 1px solid #c0163c4d;
+  --border-inverse: 1px solid #fbf7ef26;
+
+  /* ------------------------------------------------------------------
+     10. 渐变 · Gradient
+     只有「枫叶三段渐变」允许高饱和；其余一律低饱和、低透明度
+     ------------------------------------------------------------------ */
+  /* 品牌签名的唯一渐变来源｜135° 与标识同向 */
+  --grad-leaf: linear-gradient(135deg, #f5773c 0%, #ea2a3e 40%, #b00f63 74%, #8c0b7a 100%);
+  --grad-leaf-v: linear-gradient(180deg, #f5773c 0%, #ea2a3e 46%, #b00f63 78%, #8c0b7a 100%);
+  --grad-leaf-soft: linear-gradient(135deg, #fdeee4 0%, #fbdccb 55%, #f7dcd0 100%);
+
+  /* 官方标识实测渐变轴｜从官方图像内部像素逐行采样，7 锚点，严格竖直。
+     仅在 .brand-mark（mask 上色）场景使用；直接 <img> 时颜色由 PNG 自带，
+     不要用本 token 覆盖，以免与官方稿件产生色差。 */
+  --grad-brand: linear-gradient(180deg, #ff7a42 0%, #fe5e40 16%, #ff2e36 32%,
+                                #fa0037 50%, #d80060 68%, #b90084 84%, #9f01a5 100%);
+
+  /* 天光：页面顶部的水彩光晕 */
+  --grad-sky: radial-gradient(90% 70% at 18% 0%, #fde7d3 0%, #fdf3e8 42%, #fbf7ef 72%);
+  --grad-sky-cool: radial-gradient(80% 60% at 82% 6%, #e9eef4 0%, #fbf7ef 60%);
+
+  /* 绯林：内容区由上至下的暖雾 */
+  --grad-canopy: linear-gradient(180deg, #fdf1e6 0%, #fbf7ef 46%, #fbf7ef 100%);
+
+  /* 山影：页脚深色区 */
+  --grad-silhouette: linear-gradient(180deg, #2a4058 0%, #1d3956 46%, #14263a 100%);
+
+  /* 图片遮罩：保证图上文字可读 */
+  --grad-scrim-bottom: linear-gradient(180deg, #12100e00 0%, #12100e59 52%, #12100eb3 100%);
+  --grad-scrim-left: linear-gradient(90deg, #12100ecc 0%, #12100e3d 58%, #12100e00 100%);
+
+  /* 文字专用渐变（仅 ≥32px display，纯装饰） */
+  --grad-text-leaf: linear-gradient(180deg, #f5773c 0%, #ea2a3e 52%, #b00f63 100%);
+  --grad-text-gilt: linear-gradient(180deg, #f3ddb2 0%, #c99a4e 62%, #a97b33 100%);
+
+  /* ------------------------------------------------------------------
+     11. 阴影 · Shadow
+     纸本气质：纸张自身的极弱投影 + 顶部一道高光边
+     ------------------------------------------------------------------ */
+  --shadow-paper: 0 1px 2px #4c443b0a, 0 10px 24px -18px #4c443b26;
+  --shadow-lift: 0 2px 6px #4c443b0f, 0 22px 44px -30px #4c443b33;
+  --shadow-float: 0 30px 60px -36px #4c443b47;
+  --shadow-inset-top: inset 0 1px 0 #ffffffb3;
+  --glow-leaf: 0 0 40px -12px #ea2a3e3d;
+
+  /* ------------------------------------------------------------------
+     12. 圆角 · Radius
+     纸本偏方正：卡片 12px，重点区块可 0（呼应册页切口）
+     ------------------------------------------------------------------ */
+  --radius-none: 0;
+  --radius-xs: 2px;  /* 印章 */
+  --radius-sm: 6px;  /* 标签 / 小按钮 */
+  --radius-md: 12px; /* 卡片默认 */
+  --radius-lg: 18px; /* 面板 / 图片 */
+  --radius-xl: 24px; /* 大区块 */
+  --radius-pill: 999px;
+
+  /* ------------------------------------------------------------------
+     13. 间距 · Spacing — 8px 栅格
+     ------------------------------------------------------------------ */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-40: 160px;
+
+  /* ------------------------------------------------------------------
+     14. 字体 · Typography
+     ------------------------------------------------------------------ */
+  /* 主视觉标题：拉丁细衬线优先（海报上的 Autumn Time），中文回落宋体 */
+  --font-display: "Cormorant Garamond", "Georgia", "STSong", "Songti SC",
+    "Source Han Serif SC", "Noto Serif SC", serif;
+  /* 中文标题：宋体骨架，横细竖粗，有刻本感 */
+  --font-serif-cn: "STSong", "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+    "SimSun", serif;
+  /* 书法：仅用于 4–8 字的手写旁注与口令，绝不作正文 */
+  --font-brush: "Ma Shan Zheng", "STXingkai", "华文行楷", "STKaiti", cursive;
+  /* 正文：无衬线保证长文可读 */
+  --font-body: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei",
+    "Noto Sans SC", system-ui, sans-serif;
+  /* 楷体：引文、题跋、图注 */
+  --font-kai: "STKaiti", "Kaiti SC", "KaiTi", var(--font-serif-cn);
+  /* 英文小标：细字重 + 超宽字距 */
+  --font-label: "Cormorant Garamond", "Optima", "Georgia", var(--font-body);
+  /* 数字 / 时间 / 价格 */
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", "Consolas", monospace;
+
+  /* 字号阶梯：移动优先，clamp 免媒体查询 */
+  --fs-display-1: clamp(44px, 9vw, 92px); /* 首屏主标，≤8 字 */
+  --fs-display-2: clamp(34px, 6vw, 64px); /* 区块主标 */
+  --fs-h1: clamp(28px, 4.2vw, 44px);
+  --fs-h2: clamp(23px, 3vw, 32px);
+  --fs-h3: 22px;
+  --fs-h4: 18px;
+  --fs-body-lg: 17px;
+  --fs-body: 15px;
+  --fs-body-sm: 13px;
+  --fs-caption: 12px;
+  --fs-kicker: 12px;
+
+  /* 行高 */
+  --lh-display: 1.12;
+  --lh-heading: 1.3;
+  --lh-body: 1.75;
+  --lh-tight: 1.45;
+
+  /* 字距 */
+  --ls-display: 0.02em;
+  --ls-heading: 0.01em;
+  --ls-body: 0.02em;
+  --ls-label: 0.22em; /* 英文小标签名元素 */
+  --ls-brush: 0.08em;
+
+  /* 字重 */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ------------------------------------------------------------------
+     15. 动效 · Motion — 只动 transform / opacity
+     ------------------------------------------------------------------ */
+  --ease-leaf: cubic-bezier(0.22, 1, 0.36, 1);   /* 主力：入场、位移 */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);    /* 淡出、收起 */
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);  /* 循环：飘落 */
+  --dur-instant: 120ms;
+  --dur-fast: 180ms;  /* hover / 按压 */
+  --dur-base: 280ms;  /* 展开 / 切换 */
+  --dur-slow: 480ms;
+  --dur-enter: 720ms; /* 首屏入场 */
+
+  /* ------------------------------------------------------------------
+     16. 层级 · Z-Index
+     ------------------------------------------------------------------ */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-nav: 200;
+  --z-drawer: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* ------------------------------------------------------------------
+     17. 栅格与容器 · Layout
+     ------------------------------------------------------------------ */
+  --container-sm: 640px;
+  --container-md: 880px;
+  --container-lg: 1200px;
+  --container-xl: 1360px;
+  --gutter: 20px;      /* 移动端 */
+  --gutter-md: 32px;   /* ≥768 */
+  --gutter-lg: 48px;   /* ≥1200 */
+  --nav-height: 64px;
+  --nav-height-md: 76px;
+  --section-gap: clamp(64px, 9vw, 128px); /* 区块留白，慷慨是纸本的关键 */
+
+  /* ------------------------------------------------------------------
+     18. 图标 · Icon（锁定 Lucide 线性，禁止 emoji）
+     ------------------------------------------------------------------ */
+  --icon-stroke: 1.75;
+  --icon-inline: 16px;
+  --icon-button: 20px;
+  --icon-standalone: 24px;
+  --icon-feature: 32px;
+
+  /* ------------------------------------------------------------------
+     19. 材质 · Texture — 纸本的三件套
+     ------------------------------------------------------------------ */
+  --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-fiber: repeating-linear-gradient(115deg, #4c443b06 0 1px, transparent 1px 6px);
+}
+
+/* ==========================================================================
+   全局基线 · Base
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration-color: #c0163c59;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* 焦点：金褐色实线环，任何底色上均可见 */
+:focus-visible {
+  outline: 2px solid var(--gilt-500);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+::selection {
+  background: var(--leaf-100);
+  color: var(--ink-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   材质工具类 · Texture
+   .paper-grain 铺在最底层消除塑料感；.paper-wash 是天光光晕
+   ========================================================================== */
+
+.paper-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: var(--tex-grain);
+}
+
+.paper-wash {
+  background-image: var(--grad-sky), var(--grad-sky-cool);
+}
+
+/* 撕纸边：用于图片/区块之间的「拼贴」过渡 */
+.torn-bottom {
+  --torn-height: 18px;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 20' preserveAspectRatio='none'%3E%3Cpath d='M0 0h320v11c-14 5-26-3-40 1s-24 7-38 3-22-6-36-1-26 6-40 2-24-6-38-2-24 6-38 3-26-7-40-2V0z' fill='%23000'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 20' preserveAspectRatio='none'%3E%3Cpath d='M0 0h320v11c-14 5-26-3-40 1s-24 7-38 3-22-6-36-1-26 6-40 2-24-6-38-2-24 6-38 3-26-7-40-2V0z' fill='%23000'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% calc(100% - var(--torn-height));
+  mask-size: 100% calc(100% - var(--torn-height));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: top;
+  mask-position: top;
+}

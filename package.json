@@ -1,0 +1,15 @@
+{
+  "name": "maple-hackathon",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @maple/api dev\" \"pnpm --filter @maple/web dev\"",
+    "build": "pnpm --filter @maple/web build && pnpm --filter @maple/api build",
+    "test": "pnpm --filter @maple/api test",
+    "typecheck": "pnpm --filter @maple/web typecheck && pnpm --filter @maple/api typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
