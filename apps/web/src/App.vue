@@ -148,7 +148,7 @@ const selectedMaple = ref<Maple | null>(null)
 const selectedRoute = ref<Route | null>(null)
 const chatOpen = ref(false)
 const message = ref('')
-const messages = ref([{ role: 'assistant', text: '你好，我是栖霞山伴游。可以问我点位、路线、厕所或当前枫况。' }])
+const messages = ref<{ role: 'assistant' | 'user'; text: string; citations?: string[] }[]>([{ role: 'assistant', text: '你好，我是栖霞山伴游。回答只用三类来源：官方公众号推文、园区导览折页、团队实地采风。\n可以问我：老人或亲子的路线、现在哪片最红、厕所在哪、栖霞寺几点停止进入。', citations: ['栖霞山官方公众号 · 2026-10-30 枫情预报', '园区导览折页', '团队 2026-10-31 实地采风'] }])
 const loading = ref(false)
 const toast = ref('')
 const dataLoading = ref(true)
@@ -233,7 +233,8 @@ function selectNav(key: string) { nav.value = key; selectedPoi.value = null; sel
 function showPoi(poi: Poi) { closeDetail(); selectedPoi.value = poi; selectedMaple.value = maple.value.find((item) => item.poiId === poi.id) ?? null; nav.value = 'map' }
 function showRoute(route: Route) { closeDetail(); selectedRoute.value = route; nav.value = 'map' }
 function showMaple(record: Maple) { closeDetail(); selectedMaple.value = record; selectedPoi.value = record.poi ?? pois.value.find((poi) => poi.id === record.poiId) ?? null; nav.value = 'maple' }
-async function sendMessage() { if (!message.value.trim() || loading.value) return; const current = message.value.trim(); messages.value.push({ role: 'user', text: current }); message.value = ''; loading.value = true; try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ message: current }) }); messages.value.push({ role: 'assistant', text: data.answer }); } catch { messages.value.push({ role: 'assistant', text: '当前连接不可用，你仍可以使用地图和枫况列表。' }) } finally { loading.value = false } }
+async function sendMessage() { if (!message.value.trim() || loading.value) return; const current = message.value.trim(); messages.value.push({ role: 'user', text: current }); message.value = ''; loading.value = true; try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ message: current }) }); messages.value.push({ role: 'assistant', text: data.answer, citations: Array.isArray(data.citations) ? data.citations : [] }); } catch { messages.value.push({ role: 'assistant', text: '当前连接不可用，你仍可以使用地图和枫况列表。' }) } finally { loading.value = false } }
+function quickAsk(question: string) { if (loading.value) return; message.value = question; sendMessage() }
 function chooseAudience(key: string) { audience.value = key; savePreference('sessionStorage', 'maple-audience', key); toast.value = `已按“${audienceLabels[key]}”更新路线` }
 function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; selectedMaple.value = null; selectedTopic.value = null }
 </script>
@@ -315,7 +316,7 @@ function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; s
 
       <section v-if="nav === 'chat'" class="content-section chat-page"><div class="section-heading compact"><span class="kicker">TEXT COMPANION</span><h2>问一句，先把选择变清楚。</h2><!-- 待官方查证，暂隐藏：伴游依据核验说明
 <p>伴游依据已发布的结构化信息回答，缺少核验资料时会明确说明。</p>
---></div><div class="chat-panel"><TransitionGroup name="messages" tag="div" class="chat-messages"><div v-for="(item, index) in messages" :key="index" class="chat-line" :class="item.role"><span v-if="item.role === 'assistant'" class="chat-mark"><ScenicIcon :size="19" /></span><p>{{ item.text }}</p></div><div v-if="loading" key="typing" class="chat-line assistant typing"><span class="chat-mark"><RefreshCw :size="14" /></span><p>正在整理信息<span class="typing-dots">…</span></p></div></TransitionGroup><form class="chat-input" @submit.prevent="sendMessage"><input v-model="message" aria-label="输入问题" placeholder="例如：带老人，想了解路线和设施" maxlength="500" /><button class="primary-btn" type="submit" aria-label="发送"><Send :size="18" /></button></form><div class="chat-suggestions"><button @click="message = '带老人，推荐一条路线'">带老人，推荐路线</button><button @click="message = '哪里有厕所？'">哪里有厕所？</button><button @click="message = '现在枫况怎样？'">现在枫况怎样？</button></div></div></section>
+--></div><div class="chat-panel"><TransitionGroup name="messages" tag="div" class="chat-messages"><div v-for="(item, index) in messages" :key="index" class="chat-line" :class="item.role"><span v-if="item.role === 'assistant'" class="chat-mark"><ScenicIcon :size="19" /></span><div class="chat-body"><p>{{ item.text }}</p><div v-if="item.citations?.length" class="chat-cites"><template v-for="cite in item.citations" :key="cite"><a v-if="cite.startsWith('http')" :href="cite" target="_blank" rel="noopener noreferrer">查看原文</a><span v-else>{{ cite }}</span></template></div></div></div><div v-if="loading" key="typing" class="chat-line assistant typing"><span class="chat-mark"><RefreshCw :size="14" /></span><p>正在整理信息<span class="typing-dots">…</span></p></div></TransitionGroup><form class="chat-input" @submit.prevent="sendMessage"><input v-model="message" aria-label="输入问题" placeholder="例如：带老人，想了解路线和设施" maxlength="500" /><button class="primary-btn" type="submit" aria-label="发送"><Send :size="18" /></button></form><div class="chat-suggestions"><button @click="quickAsk('带老人，推荐一条路线')">带老人怎么走</button><button @click="quickAsk('带孩子和推车走哪条')">带娃推车</button><button @click="quickAsk('现在枫况怎样')">现在枫况</button><button @click="quickAsk('现在哪片枫叶最红')">哪片最红</button><button @click="quickAsk('哪里有厕所')">找厕所</button><button @click="quickAsk('停车停在哪里')">停车</button><button @click="quickAsk('栖霞寺几点停止进入')">栖霞寺时间</button><button @click="quickAsk('想拍倒影去哪')">拍倒影</button></div></div></section>
 
 
       </div></Transition>

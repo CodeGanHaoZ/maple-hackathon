@@ -114,18 +114,109 @@ app.get('/api/v1/map', (c) => c.json(ok({
 const recommendSchema = z.object({ audience: z.string().default('other'), interest: z.string().nullable().optional(), maxMinutes: z.number().optional(), constraints: z.object({ noStairs: z.boolean().optional(), strollerRequired: z.boolean().optional() }).optional() })
 app.post('/api/v1/recommendations/routes', async (c) => { const input = recommendSchema.safeParse(await c.req.json().catch(() => ({}))); if (!input.success) return c.json({ error: { code: 'BAD_REQUEST', message: '参数不完整' } }, 400); const { audience, maxMinutes, constraints } = input.data; let items = routes.filter((route) => route.audience.includes(audience) || audience === 'other'); if (constraints?.noStairs) items = items.filter((route) => route.stairs === '无'); if (constraints?.strollerRequired) items = items.filter((route) => /推车|轮椅/.test(route.facilities)); if (maxMinutes) items = items.filter((route) => { const minutes = route.duration.match(/\d+/g)?.map(Number) ?? []; return minutes.length ? Math.min(...minutes) <= maxMinutes : true }); return c.json(ok({ status: items.length ? 'matched' : 'unmatched', items, appliedContext: input.data, unmatchedReasons: items.length ? [] : ['暂无满足条件的已核验路线'] })) })
 app.post('/api/v1/recommendations/maple', async (c) => { const input = await c.req.json().catch(() => ({})); const interest = input.interest; const active = currentMaple().filter((item) => item.status === '有效').filter((item) => !interest || (interest === 'density' ? item.density.includes('成片') : interest === 'color' ? item.redBand !== '暂无信息' : item.view !== '暂无信息')); return c.json(ok({ items: active.slice(0, 3).map((record) => ({ ...record, poi: pois.find((poi) => poi.id === record.poiId), reason: interest === 'density' ? record.density : interest === 'view' ? record.view : record.redBand })) })) })
+// ── 伴游问答：全部结论取自本文件的采风数据、官方推文与导览折页，不做推测 ──
+const activeMaple = () => currentMaple().filter((item) => item.status === '有效')
+const poiName = (id: string) => pois.find((poi) => poi.id === id)?.name ?? id
+const mapleRanking = () => [...activeMaple()].sort((a, b) => (b.progressPercent ?? 0) - (a.progressPercent ?? 0))
+const routeLine = (route: Route) => `${route.name}：约 ${route.duration}、${route.distance}，${route.difficulty}，台阶：${route.stairs}。路线：${route.stops.join(' → ')}。${route.reason}${route.facilities}。`
+const facilityLine = (item: Facility) => `${item.name}（${item.location}${item.note ? `，${item.note}` : ''}）`
+const SOURCE_ROUTE = '园区导览折页 · 路线时长与台阶'
+const SOURCE_FACILITY = '园区导览折页 · 设施图例'
+const SOURCE_FIELD = '团队 2026-10-31 实地采风'
+
 app.post('/api/v1/chat', async (c) => {
   const { message = '' } = await c.req.json().catch(() => ({}))
   const text = String(message).toLowerCase()
-  const facilityKind = /厕所|卫生间|洗手间/.test(text) ? 'toilet' : /停车|车位/.test(text) ? 'parking' : /接驳|摆渡|观光车/.test(text) ? 'shuttle' : null
-  const wantsRoute = text.includes('路线') || text.includes('老人')
-  const cards = facilityKind ? mapFacilities.filter(item => item.kind === facilityKind) : wantsRoute ? routes : []
   const context = currentContext()
-  const answer = facilityKind ? '地图服务提供地点检索、官方小程序地点目录和园区导览图。授权定位后，可查看已有坐标地点距你的直线距离；未匹配坐标的地点仅列出名称和位置说明。开放状态与接驳运营信息请咨询园区工作人员。'
-    : wantsRoute ? '目前暂无已核验的路线时长、台阶及通行信息。请先查阅园区导览图，同行有老人或儿童时向园区工作人员确认路况。'
-    : /枫|红|绿/.test(text) ? `2026-10-30 官方推文发布的红叶进度为 ${context.progressPercent}%。这是发布时的进度，非实时监测或具体点位统计。${context.fieldReport.observationPeriod}采风：${context.fieldReport.summary}。采风未按具体点位统计，不换算百分比；后续变化请以园区更新为准。`
-    : '地图服务上方展示实际地图，下方可切换插画赏秋图和园区导览图。枫况按有来源的观测更新；尚未确认的路线、班次和设施状态会保持待更新。'
-  return c.json(ok({ answer, cards, citations: /枫|红|绿/.test(text) && context ? [context.source, context.reference.url] : [], degraded: true }))
+  const toilets = mapFacilities.filter((item) => item.kind === 'toilet')
+  const parking = mapFacilities.filter((item) => item.kind === 'parking')
+  const shuttle = mapFacilities.filter((item) => item.kind === 'shuttle')
+  const routeOf = (id: string) => routes.find((route) => route.id === id)
+
+  // 1) 先看点名：命中具体点位时直接答该点位，避免「红叶谷」被当成泛问枫况
+  const hitId = pois.find((poi) => text.includes(poi.name))?.id
+    ?? (/西门|入口/.test(text) ? 'ximen'
+      : /古寺|寺庙/.test(text) ? 'qixiasi'
+      : /石塔/.test(text) ? 'sheli'
+      : /石窟|佛龛/.test(text) ? 'qianfoyan'
+      : /山顶|最高|俯瞰/.test(text) ? 'fengxiang'
+      : '')
+  const hit = pois.find((poi) => poi.id === hitId)
+  if (hit) {
+    const record = mapleRanking().find((item) => item.poiId === hit.id) ?? activeMaple().find((item) => item.poiId === hit.id)
+    return c.json(ok({
+      answer: `${hit.name}：${hit.description}${record ? `采风红度 ${record.redBand}（${record.stage}，密度${record.density}，视角${record.view}）。` : ''}`,
+      cards: [{ ...hit, maple: record }], citations: ['园区导览折页 · 点位说明', SOURCE_FIELD], degraded: true
+    }))
+  }
+
+  // 2) 枫况：官方进度 + 采风定性与点位红度分开说，不混算
+  if (/枫况|红叶|枫叶|红度|变红|红了|转色|哪片|什么颜色/.test(text)) {
+    const top = mapleRanking().slice(0, 3)
+    const answer = [
+      `官方公众号 2026-10-30 推文：红叶进度 ${context.progressPercent}%，判断为「${context.summary}」。这是发布时的进度，非实时监测或具体点位统计。`,
+      `${context.fieldReport.observationPeriod}团队实地采风：${context.fieldReport.summary}；${context.fieldReport.scope}`,
+      `点位红度前三（采风目测，有效期至 11-08）：${top.map((item) => `${poiName(item.poiId)} ${item.redBand}（${item.stage}；密度${item.density}；视角${item.view}）`).join('；')}。`,
+      '结论：想要成片密度去红叶谷，想拍倒影去彩虹明镜，怕台阶就走银发慢游线（全程无台阶）。'
+    ].join('\n\n')
+    return c.json(ok({ answer, cards: top.map((record) => ({ ...record, poi: pois.find((poi) => poi.id === record.poiId) })), citations: [context.source, context.reference.url], degraded: true }))
+  }
+
+  // 3) 路线：按同行人挑已整理的 3 条线，给出时长/距离/台阶/途经点
+  if (/路线|怎么走|怎么逛|行程|带老人|老人|长者|银发|轮椅|腿脚|带娃|孩子|亲子|推车|婴儿|摄影|拍照|机位|倒影|追光|徒步|爬山|多久|时长/.test(text)) {
+    const primary = /老人|长者|银发|轮椅|腿脚/.test(text) ? routeOf('r-senior')!
+      : /孩子|娃|亲子|推车|婴儿/.test(text) ? routeOf('r-family')!
+      : /摄影|拍照|机位|倒影|追光/.test(text) ? routeOf('r-photo')!
+      : routeOf('r-family')!
+    const other = primary.id === 'r-family' ? routeOf('r-senior')! : routeOf('r-family')!
+    const answer = [
+      routeLine(primary),
+      `另一条可参考：${routeLine(other)}`,
+      '时间窗：栖霞寺 16:00 停止进入；凤翔峰 16:30 后不建议再往上（下山无路灯）。'
+    ].join('\n\n')
+    return c.json(ok({ answer, cards: [primary, other], citations: [SOURCE_ROUTE, SOURCE_FIELD], degraded: true }))
+  }
+
+  // 4) 设施：厕所 / 停车 / 观光车 / 休息补给
+  if (/厕所|卫生间|洗手间/.test(text)) {
+    return c.json(ok({ answer: `折页标注的卫生间共 ${toilets.length} 处：${toilets.map(facilityLine).join('；')}。桃花涧到红叶谷的涧谷段没有卫生间，进涧谷前先解决。`, cards: toilets, citations: [SOURCE_FACILITY], degraded: true }))
+  }
+  if (/停车|车位|自驾/.test(text)) {
+    const answer = parking.length
+      ? `${parking.map(facilityLine).join('；')}。建议 9:30 前进场，避开 10:00 后的饱和段。`
+      : '折页中没有标注停车场信息，建议以园区现场指引为准。'
+    return c.json(ok({ answer, cards: parking, citations: [SOURCE_FACILITY], degraded: true }))
+  }
+  if (/观光车|接驳|摆渡|电瓶车/.test(text)) {
+    const answer = shuttle.length
+      ? `${facilityLine(shuttle[0])}。票价与班次没有获取到官方发布数据，不做推测，现场确认。`
+      : '折页中没有标注观光车站点，建议以园区现场指引为准。'
+    return c.json(ok({ answer, cards: shuttle, citations: [SOURCE_FACILITY], degraded: true }))
+  }
+  if (/休息|座位|坐一会|避雨|吃饭|补给|饿/.test(text)) {
+    return c.json(ok({
+      answer: '亲子线与银发线沿线共有座位 60 余处，半山有半馆休憩点（室内可避雨）与天街补给段；红叶谷只有临时售卖点。山上正餐点位没有官方发布清单，不逐一推荐。',
+      cards: mapFacilities.filter((item) => item.kind === 'rest'), citations: [SOURCE_FACILITY], degraded: true
+    }))
+  }
+
+  // 5) 票价与开放时间：没有官方数据就明说，不编数字
+  if (/门票|票价|价格|多少钱|开放时间|几点开|几点关|营业时间/.test(text)) {
+    return c.json(ok({
+      answer: '票价与开放时间没有获取到官方发布数据，不做推测，可查「栖霞山」官方公众号或现场售票处。已核到的时间窗只有两处：栖霞寺 16:00 停止进入；凤翔峰 16:30 后不建议再往上（下山无路灯）。',
+      cards: [], citations: [], degraded: true
+    }))
+  }
+
+  // 6) 兜底：交代能力边界与数据来源
+  return c.json(ok({
+    answer: [
+      '回答只用三类来源：官方公众号推文、园区导览折页、团队实地采风。',
+      `当前可查：① 枫况（官方进度 ${context.progressPercent}%，发布 ${context.publishedAt.slice(0, 10)}）② 老人 / 亲子 / 摄影三条路线 ③ 厕所、停车、观光车共 ${mapFacilities.length} 处设施 ④ 8 个点位的红度与硬提示。`,
+      '可以这样问：「带老人走哪条」「现在哪片最红」「厕所在哪」「栖霞寺几点停止进入」。'
+    ].join('\n\n'),
+    cards: [], citations: [], degraded: true
+  }))
 })
 // Unavailable persistence must never return a fabricated acceptance receipt.
 app.post('/api/v1/feedback', c => c.json({ error: { code: 'UNAVAILABLE', message: '暂未开通在线反馈，请向园区工作人员反馈。' } }, 503))
