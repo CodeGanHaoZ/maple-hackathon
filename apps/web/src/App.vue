@@ -131,6 +131,11 @@ const cultureTopics = [
 const topic = computed(() => cultureTopics.find(item => item.id === selectedTopic.value))
 const storedAudience = readPreference('sessionStorage', 'maple-audience')
 const audience = ref(storedAudience && ['photo_outdoor', 'couple', 'family', 'family_senior', 'senior', 'other'].includes(storedAudience) ? storedAudience : 'other')
+/** 实际生效的人群筛选（点击后延迟落下）与过渡态标记 */
+const audienceLens = ref(audience.value)
+const audienceSwapping = ref(false)
+let audienceTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => { if (audienceTimer) clearTimeout(audienceTimer) })
 const interest = ref<string | null>(null)
 /** 实际生效的排序偏好（点击后延迟落下）与过渡态标记 */
 const mapleLens = ref<string | null>(null)
@@ -248,7 +253,7 @@ const formatObserved = (iso: string) => {
   return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 const displayMaple = computed(() => season.value === 'autumn' ? recommendedMaple.value : archiveOpen.value ? maple.value : [])
-const recommendedRoutes = computed(() => routes.value.filter((route) => route.audience.includes(audience.value) || audience.value === 'other').slice(0, 3))
+const recommendedRoutes = computed(() => routes.value.filter((route) => route.audience.includes(audienceLens.value) || audienceLens.value === 'other').slice(0, 3))
 /**
  * 三档偏好只改「排序权重」，不做过滤：卡片永远是 3 张，
  * 切换时不会有卡片消失、网格高度塌陷，也就没有页面跳动。
@@ -288,12 +293,24 @@ function showRoute(route: Route) { closeDetail(); selectedRoute.value = route; n
 function showMaple(record: Maple) { closeDetail(); selectedMaple.value = record; selectedPoi.value = record.poi ?? pois.value.find((poi) => poi.id === record.poiId) ?? null; nav.value = 'maple' }
 async function sendMessage() { if (!message.value.trim() || loading.value) return; const current = message.value.trim(); messages.value.push({ role: 'user', text: current }); message.value = ''; loading.value = true; try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ message: current }) }); messages.value.push({ role: 'assistant', text: data.answer, citations: Array.isArray(data.citations) ? data.citations : [] }); } catch { messages.value.push({ role: 'assistant', text: '当前连接不可用，你仍可以使用地图和枫况列表。' }) } finally { loading.value = false } }
 function quickAsk(question: string) { if (loading.value) return; message.value = question; sendMessage() }
+/**
+ * 人群标签同样走「先过渡再落数据」：标签高亮立刻响应，
+ * 列表在 200ms 的筛选态之后才换，避免一次性重排造成的顿挫与跳动。
+ */
 function chooseAudience(key: string) {
   if (audience.value === key) return
   audience.value = key
   savePreference('sessionStorage', 'maple-audience', key)
-  const count = recommendedRoutes.value.length
-  toast.value = count ? `已按“${audienceLabels[key]}”筛出 ${count} 条路线` : `“${audienceLabels[key]}”暂无匹配路线，切到“先看看”可看全部`
+  if (audienceTimer) clearTimeout(audienceTimer)
+  const commit = () => {
+    audienceLens.value = key
+    const count = recommendedRoutes.value.length
+    toast.value = count ? `已按“${audienceLabels[key]}”筛出 ${count} 条路线` : `“${audienceLabels[key]}”暂无匹配路线，切到“先看看”可看全部`
+    requestAnimationFrame(() => { audienceSwapping.value = false })
+  }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { commit(); return }
+  audienceSwapping.value = true
+  audienceTimer = setTimeout(commit, 200)
 }
 /** 方向键在人群标签间移动，保持 tablist 的键盘可达性。 */
 function stepAudience(offset: number) {
@@ -338,7 +355,7 @@ function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; s
       </section>
       <section v-if="nav === 'map'" class="content-section map-page paper-wash">
         <div class="map-page-heading"><h2>地图服务</h2></div>
-        <div class="map-layout" :class="{ 'without-routes': !routes.length }"><ScenicMap ref="scenicMap" :pois="pois" :facilities="facilities" :shuttle-routes="shuttleRoutes" @select-poi="id => { const poi = pois.find(item => item.id === id); if (poi) showPoi(poi) }" @notice="value => toast = value"><template #map-controls><div class="toolbar map-controls-below"><div class="toolbar-actions"><button class="outline-btn" @click="scenicMap?.reset()"><MapPin :size="17" />回到栖霞山</button><button class="outline-btn" @click="scenicMap?.locate()"><LocateFixed :size="17" />使用我的位置</button></div></div></template></ScenicMap><div class="route-list"><div class="route-filter"><div class="route-filter-head"><span>按同行人挑路线</span><small>共 {{ routes.length }} 条</small></div><div class="audience-tabs" role="tablist" aria-label="路线偏好"><button v-for="(label, key) in audienceLabels" :key="key" :data-key="key" role="tab" :aria-selected="audience === key" :tabindex="audience === key ? 0 : -1" :class="{ active: audience === key }" @click="chooseAudience(key)" @keydown.left.prevent="stepAudience(-1)" @keydown.right.prevent="stepAudience(1)">{{ label }}</button></div></div><div class="list-heading" aria-live="polite"><span>已核验路线</span><small>{{ audienceLabels[audience] }} · {{ recommendedRoutes.length }} 条</small></div><TransitionGroup name="cards" tag="div" class="route-cards"><article v-for="route in recommendedRoutes" :key="route.id" class="route-ticket" v-reveal tabindex="0" role="button" :aria-label="`查看${route.name}详情`" @click="showRoute(route)" @keydown.enter="showRoute(route)" @keydown.space.prevent="showRoute(route)"><img v-image-fade.fast :src="route.image" alt="" decoding="async" /><div class="ticket-content"><span class="ticket-kicker">ROUTE</span><h3>{{ route.name }}</h3><div class="route-meta"><span><Clock3 :size="14" />{{ route.duration }}</span><span><Mountain :size="14" />{{ route.difficulty }}</span></div><p>{{ route.reason }}</p><button class="text-btn">查看路线详情 <ArrowRight :size="15" /></button></div></article></TransitionGroup><div v-if="!recommendedRoutes.length" class="empty-state"><AlertTriangle :size="20" /><b>暂无匹配路线</b><span>换一个同行人试试，或查阅下方园区导览图；出行前向园区确认现场路况。</span></div></div></div>
+        <div class="map-layout" :class="{ 'without-routes': !routes.length }"><ScenicMap ref="scenicMap" :pois="pois" :facilities="facilities" :shuttle-routes="shuttleRoutes" @select-poi="id => { const poi = pois.find(item => item.id === id); if (poi) showPoi(poi) }" @notice="value => toast = value"><template #map-controls><div class="toolbar map-controls-below"><div class="toolbar-actions"><button class="outline-btn" @click="scenicMap?.reset()"><MapPin :size="17" />回到栖霞山</button><button class="outline-btn" @click="scenicMap?.locate()"><LocateFixed :size="17" />使用我的位置</button></div></div></template></ScenicMap><div class="route-list"><div class="route-filter" :class="{ 'is-swapping': audienceSwapping }" :aria-busy="audienceSwapping"><div class="route-filter-head"><span>按同行人挑路线</span><small><span :class="{ 'route-loading': audienceSwapping }">{{ audienceSwapping ? '正在筛选…' : `共 ${routes.length} 条` }}</span></small></div><div class="audience-tabs" role="tablist" aria-label="路线偏好"><button v-for="(label, key) in audienceLabels" :key="key" :data-key="key" role="tab" :aria-selected="audience === key" :tabindex="audience === key ? 0 : -1" :class="{ active: audience === key }" @click="chooseAudience(key)" @keydown.left.prevent="stepAudience(-1)" @keydown.right.prevent="stepAudience(1)">{{ label }}</button></div><i class="route-progress" aria-hidden="true" /></div><div class="list-heading" aria-live="polite"><span>已核验路线</span><small>{{ audienceLabels[audienceLens] }} · {{ recommendedRoutes.length }} 条</small></div><TransitionGroup name="cards" tag="div" class="route-cards" :class="{ 'is-swapping': audienceSwapping }" :aria-busy="audienceSwapping"><article v-for="route in recommendedRoutes" :key="route.id" class="route-ticket" v-reveal tabindex="0" role="button" :aria-label="`查看${route.name}详情`" @click="showRoute(route)" @keydown.enter="showRoute(route)" @keydown.space.prevent="showRoute(route)"><img v-image-fade.fast :src="route.image" alt="" decoding="async" /><div class="ticket-content"><span class="ticket-kicker">ROUTE</span><h3>{{ route.name }}</h3><div class="route-meta"><span><Clock3 :size="14" />{{ route.duration }}</span><span><Mountain :size="14" />{{ route.difficulty }}</span></div><p>{{ route.reason }}</p><button class="text-btn">查看路线详情 <ArrowRight :size="15" /></button></div></article></TransitionGroup><div v-if="!recommendedRoutes.length" class="empty-state"><AlertTriangle :size="20" /><b>暂无匹配路线</b><span>换一个同行人试试，或查阅下方园区导览图；出行前向园区确认现场路况。</span></div></div></div>
       </section>
 
       <section v-if="nav === 'maple'" class="content-section maple-section">

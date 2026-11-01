@@ -69,17 +69,24 @@ h1 em { display: block; color: var(--color-primary); font-style: normal; }
 .map-disclaimer, .coverage-note, .info-callout { margin-top: 10px; padding: 11px 14px; display: flex; align-items: flex-start; gap: 8px; color: var(--ink-300); background: var(--paper-200); font-size: 12px; line-height: 1.6; }
 .route-list { display: grid; gap: 12px; }
 /* 人群标签与路线列表同处一列：点选即筛选，视线不用在地图与列表之间来回找 */
-.route-filter { display: grid; gap: 10px; padding: 12px 13px 13px; border: var(--border-paper); border-radius: var(--radius-md); background: var(--paper-000); }
+.route-filter { position: relative; display: grid; gap: 10px; padding: 12px 13px 13px; border: var(--border-paper); border-radius: var(--radius-md); background: var(--paper-000); }
 .route-filter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; color: var(--ink-500); font-size: 12px; }
-.route-filter-head span { display: inline-flex; align-items: center; gap: 6px; }
-.route-filter-head span::before { content: ""; flex: 0 0 auto; width: 3px; height: 12px; border-radius: 2px; background: var(--color-primary); opacity: .5; }
+.route-filter-head > span { display: inline-flex; align-items: center; gap: 6px; }
+.route-filter-head > span::before { content: ""; flex: 0 0 auto; width: 3px; height: 12px; border-radius: 2px; background: var(--color-primary); opacity: .5; }
 .route-filter-head small { color: var(--ink-300); font-size: 11px; white-space: nowrap; }
+.route-filter-head small span { display: inline-flex; align-items: center; }
+.route-loading { gap: 6px; color: var(--color-primary); }
+.route-loading::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: interest-dot 700ms var(--ease-out) infinite alternate; }
+/* 筛选进度条：与「枫况」偏好切换同款，210ms 扫到底即落数据 */
+.route-progress { position: absolute; left: 13px; right: 13px; bottom: 1px; height: 2px; border-radius: 2px; background: var(--color-primary); transform: scaleX(0); transform-origin: left; opacity: 0; pointer-events: none; }
+.route-filter.is-swapping .route-progress { opacity: .75; animation: interest-sweep 210ms var(--ease-out) forwards; }
 .audience-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .audience-tabs button { min-width: 0; border: 1px solid var(--paper-300); border-radius: var(--radius-pill); background: transparent; color: var(--ink-500); padding: 7px 4px; font-size: 12.5px; line-height: 1.35; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
 .audience-tabs button:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .audience-tabs button.active { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
 .audience-tabs button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-.route-cards { display: grid; gap: 12px; }
+.route-cards { display: grid; gap: 12px; transition: opacity 150ms var(--ease-out); }
+.route-cards.is-swapping { opacity: .55; pointer-events: none; }
 .cards-move { transition: transform 320ms var(--ease-leaf); }
 .list-heading { display: flex; justify-content: space-between; align-items: baseline; color: var(--ink-700); margin-bottom: 2px; }.list-heading small { color: var(--ink-300); }
 .route-ticket { display: grid; grid-template-columns: 112px 1fr; gap: 14px; padding: 10px; border: var(--border-paper); border-radius: var(--radius-md); background: var(--paper-000); transition: transform var(--dur-fast) var(--ease-out); }
