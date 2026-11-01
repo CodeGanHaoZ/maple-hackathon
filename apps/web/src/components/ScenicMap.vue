@@ -207,11 +207,15 @@ onBeforeUnmount(() => { disposed = true; if (timer) clearTimeout(timer); map?.st
         <label class="place-search"><Search :size="18" /><input v-model="search" type="search" aria-label="搜索景点或设施" placeholder="搜索景点、厕所、停车场" /></label>
         <p v-if="placesLoading" class="places-status" role="status"><RefreshCw :size="16" class="loading-leaf" />正在查找园区地点…</p>
         <p v-else-if="placesError || !key" class="places-status" role="status">{{ !key ? '地图地点服务暂未配置。' : places.length ? '部分地点未能加载，已加载的地点仍可查看。' : '地点服务暂不可用，请查阅下方地点目录与园区图，或稍后重试。' }}<button v-if="key" class="text-btn" @click="loadPlaces(true)">重新加载地点</button></p>
-        <TransitionGroup name="place" tag="div" class="facility-grid"><button v-for="item in shownPlaces" :key="item.id" class="facility-item" @click="focusFacility(item)"><component :is="layers.find(layer => layer.id === item.kind)?.icon || MapPin" :size="21" /><span class="place-copy"><b>{{ item.name }}</b><small>{{ item.location }}</small><small>{{ item.officialName ? '官方目录同名地点 · ' : '' }}{{ item.source }}</small></span><span class="place-distance"><b>{{ item.distance === null ? '—' : formatDistance(item.distance) }}</b><small>{{ item.distance === null ? '待定位' : '距我 · 直线' }}</small></span></button></TransitionGroup>
+        <TransitionGroup name="place" tag="div" class="facility-grid"><button v-for="item in shownPlaces" :key="item.id" class="facility-item" @click="focusFacility(item)"><component :is="layers.find(layer => layer.id === item.kind)?.icon || MapPin" :size="21" /><span class="place-copy"><b>{{ item.name }}</b><small>{{ item.location }}</small><!-- 待官方查证，暂隐藏：地点来源标注 --></span><span class="place-distance"><b>{{ item.distance === null ? '—' : formatDistance(item.distance) }}</b><small>{{ item.distance === null ? '待定位' : '距我 · 直线' }}</small></span></button></TransitionGroup>
         <p v-if="!placesLoading && !shownPlaces.length" class="facility-empty">{{ places.length ? '当前筛选没有匹配地点，请调整图层或搜索词。' : '暂未取得可用坐标，请先查阅下方官方地点目录与导览图。' }}</p>
-        <details v-if="unmatchedPlaces.length" class="official-place-directory"><summary>官方小程序地点目录 · {{ unmatchedPlaces.length }} 个待匹配坐标</summary><div v-for="item in unmatchedPlaces" :key="item.name" class="unmatched-place"><span><b>{{ item.name }}</b><small>{{ item.location }}</small></span><small>坐标待匹配</small></div></details>
+        <!-- 待官方查证，暂隐藏：官方小程序待匹配坐标目录
+<details v-if="unmatchedPlaces.length" class="official-place-directory"><summary>官方小程序地点目录 · {{ unmatchedPlaces.length }} 个待匹配坐标</summary><div v-for="item in unmatchedPlaces" :key="item.name" class="unmatched-place"><span><b>{{ item.name }}</b><small>{{ item.location }}</small></span><small>坐标待匹配</small></div></details>
+-->
       </div>
-      <div class="map-disclaimer"><Info :size="16" /><span>坐标来自实际地图地点检索，地点目录参考官方小程序。距离按本次定位计算，为直线距离，非步行路程。开放状态以现场为准；未取得坐标的地点不标点，接驳站不表示车辆实时位置。</span></div>
+      <!-- 待官方查证，暂隐藏：地图坐标与距离口径说明
+<div class="map-disclaimer"><Info :size="16" /><span>坐标来自实际地图地点检索，地点目录参考官方小程序。距离按本次定位计算，为直线距离，非步行路程。开放状态以现场为准；未取得坐标的地点不标点，接驳站不表示车辆实时位置。</span></div>
+-->
     </section>
     <div class="map-reference-section">
       <div class="map-section-heading"><div><span class="kicker">PARK MAPS</span><h3>园区地图参考</h3></div><div class="map-mode-controls" role="tablist" aria-label="园区参考地图">
@@ -220,11 +224,15 @@ onBeforeUnmount(() => { disposed = true; if (timer) clearTimeout(timer); map?.st
       </div></div>
       <div v-if="referenceMode === 'illustrated'" class="map-reference-panel">
         <MapImageViewer src="/assets/maps/qixia-illustrated.png" alt="栖霞山插画赏秋地图" label="栖霞山插画赏秋地图" />
-        <p class="map-disclaimer"><Info :size="16" />用户提供的插画地图参考。图上位置用于观览，不与实际地图坐标配准。</p>
+        <!-- 待官方查证，暂隐藏：插画地图配准说明
+<p class="map-disclaimer"><Info :size="16" />用户提供的插画地图参考。图上位置用于观览，不与实际地图坐标配准。</p>
+-->
       </div>
       <div v-else class="map-reference-panel">
         <MapImageViewer src="/assets/maps/qixia-guide.png" alt="栖霞山园区导览图，含园区道路与设施图例" label="栖霞山园区导览图" />
-        <p class="map-disclaimer"><Info :size="16" />园区导览图用于查阅道路和设施图例；图面信息的发布日期及当前运营状态尚待园区确认。</p>
+        <!-- 待官方查证，暂隐藏：园区导览图发布日期说明
+<p class="map-disclaimer"><Info :size="16" />园区导览图用于查阅道路和设施图例；图面信息的发布日期及当前运营状态尚待园区确认。</p>
+-->
       </div>
     </div>
     <section class="map-recommendations" aria-labelledby="recommendation-title">

@@ -72,7 +72,9 @@ onBeforeUnmount(() => { document.body.classList.remove('map-viewer-open'); windo
     <Transition name="fade"><div v-if="open" ref="stage" class="map-image-overlay" role="dialog" aria-modal="true" :aria-label="`${label}全屏查看`" @wheel="wheel">
       <div class="map-viewer-toolbar"><b>{{ label }}</b><div><button aria-label="缩小" title="缩小" @click="zoom(scale - .25)"><Minus :size="18" /></button><button aria-label="放大" title="放大" @click="zoom(scale + .25)"><Plus :size="18" /></button><button aria-label="恢复原始大小" title="恢复原始大小" @click="reset"><RotateCcw :size="18" /></button><button aria-label="全屏查看，优先横屏" title="全屏查看" @click="enterFullscreen"><Expand :size="18" /></button><button aria-label="关闭地图" title="关闭" @click="close"><X :size="18" /></button></div></div>
       <div class="map-viewer-stage" @pointerdown="pointerDown" @pointermove="move" @pointerup="pointerUp" @pointercancel="pointerUp"><img :src="src" :alt="alt" :style="scaleStyle" draggable="false" /></div>
-      <p class="map-viewer-caption">{{ label }} · 图片仅供导览参考，未与地图坐标配准</p>
+      <!-- 待官方查证，暂隐藏：参考图配准说明
+<p class="map-viewer-caption">{{ label }} · 图片仅供导览参考，未与地图坐标配准</p>
+-->
     </div></Transition>
   </div>
 </template>
