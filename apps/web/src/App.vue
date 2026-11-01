@@ -132,11 +132,26 @@ const topic = computed(() => cultureTopics.find(item => item.id === selectedTopi
 const storedAudience = readPreference('sessionStorage', 'maple-audience')
 const audience = ref(storedAudience && ['photo_outdoor', 'couple', 'family', 'family_senior', 'senior', 'other'].includes(storedAudience) ? storedAudience : 'other')
 const interest = ref<string | null>(null)
+/** 实际生效的排序偏好（点击后延迟落下）与过渡态标记 */
+const mapleLens = ref<string | null>(null)
+const mapleSwapping = ref(false)
+let interestTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => { if (interestTimer) clearTimeout(interestTimer) })
 const pois = ref<Poi[]>([])
 // 2026-10-31 团队实拍照片（仅用于点位与路线封面）
 const PHOTOS: Record<string, string> = { ximen: '/photos/ximen.jpg', mingjinghu: '/photos/qixiasi.jpg', qixiasi: '/photos/qixiasi.jpg', sheli: '/photos/sheli.jpg', qianfoyan: '/photos/sheli.jpg', taohuajian: '/photos/taohuajian.jpg', hongyegu: '/photos/hongyegu.jpg' }
 const ROUTE_PHOTOS: Record<string, string> = { 'r-family': '/photos/taohuajian.jpg', 'r-photo': '/photos/hongyegu.jpg', 'r-senior': '/photos/qixiasi.jpg' }
 const withPhotos = (list: any[]) => list.map(item => PHOTOS[item?.poi?.id] ? { ...item, poi: { ...item.poi, image: PHOTOS[item.poi.id] } } : PHOTOS[item?.id] ? { ...item, image: PHOTOS[item.id] } : item)
+/** 预先解码列表用图：切 tab 时卡片是复用还是新建都不必再等解码，避免掉帧。 */
+function preloadPhotos(sources: (string | undefined)[]) {
+  const unique = [...new Set(sources.filter(Boolean) as string[])]
+  unique.forEach((src) => {
+    const image = new Image()
+    image.decoding = 'async'
+    image.src = src
+    image.decode?.().catch(() => {})
+  })
+}
 const maple = ref<Maple[]>([])
 const routes = ref<Route[]>([])
 const facilities = ref<Facility[]>([])
@@ -182,6 +197,7 @@ async function load() {
     foliageContext.value = foliage
     hasData.value = true
     now.value = Date.now()
+    preloadPhotos([...maple.value.map((rec: any) => rec.poi?.image), ...routes.value.map((route: any) => route.image)])
   } catch (err) {
     // 部署环境容错：任一接口异常也让页面骨架可用，避免整页落到错误态
     if (!disposed) {
@@ -233,9 +249,39 @@ const formatObserved = (iso: string) => {
 }
 const displayMaple = computed(() => season.value === 'autumn' ? recommendedMaple.value : archiveOpen.value ? maple.value : [])
 const recommendedRoutes = computed(() => routes.value.filter((route) => route.audience.includes(audience.value) || audience.value === 'other').slice(0, 3))
-const recommendedMaple = computed(() => activeMaple.value.filter((record) => !interest.value || (interest.value === 'density' ? record.density.includes('成片') : interest.value === 'color' ? record.redBand !== '暂无信息' : record.view !== '暂无信息')).slice(0, 3))
+/**
+ * 三档偏好只改「排序权重」，不做过滤：卡片永远是 3 张，
+ * 切换时不会有卡片消失、网格高度塌陷，也就没有页面跳动。
+ */
+const densityRank = (value: string) => /成片/.test(value) ? 4 : /连片/.test(value) ? 3 : /点缀/.test(value) ? 2 : /零星/.test(value) ? 1 : 0
+const viewRank = (value: string) => /俯瞰|全景/.test(value) ? 4 : /纵深/.test(value) ? 3 : /倒影/.test(value) ? 2 : /平视|栈道|框景|侧光/.test(value) ? 1 : 0
+const recommendedMaple = computed(() => {
+  const list = activeMaple.value
+  if (!mapleLens.value) return list.slice(0, 3)
+  const weight = (record: Maple) => {
+    const red = redPercent(record) ?? 0
+    if (mapleLens.value === 'density') return densityRank(record.density) * 1000 + red
+    if (mapleLens.value === 'view') return viewRank(record.view) * 1000 + red
+    return red
+  }
+  return [...list].sort((a, b) => weight(b) - weight(a)).slice(0, 3)
+})
 const audienceLabels: Record<string, string> = { photo_outdoor: '摄影户外', couple: '情侣同行', family: '亲子同行', family_senior: '亲子带老人', senior: '银发慢行', other: '先看看' }
 const interestLabels: Record<string, string> = { color: '看色彩', density: '看成片', view: '看层次' }
+const interestHints: Record<string, string> = { color: '按红叶占比排序', density: '按成片程度排序', view: '按视角开阔度排序' }
+/** 点击后先进入 180ms 的过渡态，再落下新排序，避免快速连点时卡片乱跳。 */
+function chooseInterest(key: string) {
+  const next = interest.value === key ? null : key
+  interest.value = next
+  if (interestTimer) clearTimeout(interestTimer)
+  if (next === mapleLens.value) { mapleSwapping.value = false; return }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { mapleLens.value = next; mapleSwapping.value = false; return }
+  mapleSwapping.value = true
+  interestTimer = setTimeout(() => {
+    mapleLens.value = next
+    requestAnimationFrame(() => { mapleSwapping.value = false })
+  }, 180)
+}
 function selectNav(key: string) { nav.value = key; selectedPoi.value = null; selectedRoute.value = null; selectedMaple.value = null; selectedTopic.value = null; backToTop() }
 function showPoi(poi: Poi) { closeDetail(); selectedPoi.value = poi; selectedMaple.value = maple.value.find((item) => item.poiId === poi.id) ?? null; nav.value = 'map' }
 function showRoute(route: Route) { closeDetail(); selectedRoute.value = route; nav.value = 'map' }
@@ -292,14 +338,14 @@ function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; s
       </section>
       <section v-if="nav === 'map'" class="content-section map-page paper-wash">
         <div class="map-page-heading"><h2>地图服务</h2></div>
-        <div class="map-layout" :class="{ 'without-routes': !routes.length }"><ScenicMap ref="scenicMap" :pois="pois" :facilities="facilities" :shuttle-routes="shuttleRoutes" @select-poi="id => { const poi = pois.find(item => item.id === id); if (poi) showPoi(poi) }" @notice="value => toast = value"><template #map-controls><div class="toolbar map-controls-below"><div class="toolbar-actions"><button class="outline-btn" @click="scenicMap?.reset()"><MapPin :size="17" />回到栖霞山</button><button class="outline-btn" @click="scenicMap?.locate()"><LocateFixed :size="17" />使用我的位置</button></div></div></template></ScenicMap><div class="route-list"><div class="route-filter"><div class="route-filter-head"><span>按同行人挑路线</span><small>共 {{ routes.length }} 条</small></div><div class="audience-tabs" role="tablist" aria-label="路线偏好"><button v-for="(label, key) in audienceLabels" :key="key" :data-key="key" role="tab" :aria-selected="audience === key" :tabindex="audience === key ? 0 : -1" :class="{ active: audience === key }" @click="chooseAudience(key)" @keydown.left.prevent="stepAudience(-1)" @keydown.right.prevent="stepAudience(1)">{{ label }}</button></div></div><div class="list-heading" aria-live="polite"><span>已核验路线</span><small>{{ audienceLabels[audience] }} · {{ recommendedRoutes.length }} 条</small></div><TransitionGroup name="cards" tag="div" class="route-cards"><article v-for="route in recommendedRoutes" :key="route.id" class="route-ticket" v-reveal tabindex="0" role="button" :aria-label="`查看${route.name}详情`" @click="showRoute(route)" @keydown.enter="showRoute(route)" @keydown.space.prevent="showRoute(route)"><img v-image-fade :src="route.image" alt="" /><div class="ticket-content"><span class="ticket-kicker">ROUTE</span><h3>{{ route.name }}</h3><div class="route-meta"><span><Clock3 :size="14" />{{ route.duration }}</span><span><Mountain :size="14" />{{ route.difficulty }}</span></div><p>{{ route.reason }}</p><button class="text-btn">查看路线详情 <ArrowRight :size="15" /></button></div></article></TransitionGroup><div v-if="!recommendedRoutes.length" class="empty-state"><AlertTriangle :size="20" /><b>暂无匹配路线</b><span>换一个同行人试试，或查阅下方园区导览图；出行前向园区确认现场路况。</span></div></div></div>
+        <div class="map-layout" :class="{ 'without-routes': !routes.length }"><ScenicMap ref="scenicMap" :pois="pois" :facilities="facilities" :shuttle-routes="shuttleRoutes" @select-poi="id => { const poi = pois.find(item => item.id === id); if (poi) showPoi(poi) }" @notice="value => toast = value"><template #map-controls><div class="toolbar map-controls-below"><div class="toolbar-actions"><button class="outline-btn" @click="scenicMap?.reset()"><MapPin :size="17" />回到栖霞山</button><button class="outline-btn" @click="scenicMap?.locate()"><LocateFixed :size="17" />使用我的位置</button></div></div></template></ScenicMap><div class="route-list"><div class="route-filter"><div class="route-filter-head"><span>按同行人挑路线</span><small>共 {{ routes.length }} 条</small></div><div class="audience-tabs" role="tablist" aria-label="路线偏好"><button v-for="(label, key) in audienceLabels" :key="key" :data-key="key" role="tab" :aria-selected="audience === key" :tabindex="audience === key ? 0 : -1" :class="{ active: audience === key }" @click="chooseAudience(key)" @keydown.left.prevent="stepAudience(-1)" @keydown.right.prevent="stepAudience(1)">{{ label }}</button></div></div><div class="list-heading" aria-live="polite"><span>已核验路线</span><small>{{ audienceLabels[audience] }} · {{ recommendedRoutes.length }} 条</small></div><TransitionGroup name="cards" tag="div" class="route-cards"><article v-for="route in recommendedRoutes" :key="route.id" class="route-ticket" v-reveal tabindex="0" role="button" :aria-label="`查看${route.name}详情`" @click="showRoute(route)" @keydown.enter="showRoute(route)" @keydown.space.prevent="showRoute(route)"><img v-image-fade.fast :src="route.image" alt="" decoding="async" /><div class="ticket-content"><span class="ticket-kicker">ROUTE</span><h3>{{ route.name }}</h3><div class="route-meta"><span><Clock3 :size="14" />{{ route.duration }}</span><span><Mountain :size="14" />{{ route.difficulty }}</span></div><p>{{ route.reason }}</p><button class="text-btn">查看路线详情 <ArrowRight :size="15" /></button></div></article></TransitionGroup><div v-if="!recommendedRoutes.length" class="empty-state"><AlertTriangle :size="20" /><b>暂无匹配路线</b><span>换一个同行人试试，或查阅下方园区导览图；出行前向园区确认现场路况。</span></div></div></div>
       </section>
 
       <section v-if="nav === 'maple'" class="content-section maple-section">
         <div class="section-heading compact"><span class="kicker">MAPLE CONDITION</span><h2>枫况记录</h2></div>
         <div class="leaf-stage-guide"><span><ScenicIcon class="leaf-green" :size="22" filled />青绿生长</span><span><ScenicIcon class="leaf-yellow" :size="22" filled />黄绿渐染</span><span><ScenicIcon class="leaf-red" :size="22" filled />红叶渐盛</span><small>叶色示意，不作转红日期预测</small></div>
-        <button v-if="season !== 'autumn' && maple.length" class="outline-btn archive-toggle" :aria-expanded="archiveOpen" @click="archiveOpen = !archiveOpen"><ScenicIcon :size="20" />{{ archiveOpen ? '收起秋季档案' : '查看秋季记录' }}</button><div v-if="season === 'autumn' && maple.length" class="interest-bar"><span>你更想看</span><button v-for="(label, key) in interestLabels" :key="key" :class="{ active: interest === key }" @click="interest = interest === key ? null : key">{{ label }}</button><small>可跳过</small></div>
-        <TransitionGroup name="cards" tag="div" class="maple-grid"><article v-for="record in displayMaple" :key="record.poiId" class="maple-card" v-reveal tabindex="0" role="button" :aria-label="`查看${record.poi?.name}枫况详情`" @click="showMaple(record)" @keydown.enter="showMaple(record)" @keydown.space.prevent="showMaple(record)"><div class="maple-image"><img v-image-fade :src="record.poi?.image" alt="" /></div><div class="maple-body"><span class="kicker">{{ record.poi?.name }}</span><h3>{{ record.stage }}</h3><p>{{ record.density }} · {{ record.view }}</p><LeafProgress v-if="season === 'autumn'" :percent="redPercent(record)" :label="record.poi?.name || '点位'" compact /><p v-else class="archive-note">秋季留影，当前不作红度判断</p><div class="maple-facts"><span><b>观测区间</b>{{ record.redBand }}</span><span><b>观察日期</b>{{ formatObserved(record.observedAt) }}</span></div><!-- 待官方查证，暂隐藏：来源与有效期 --></div></article></TransitionGroup>
+        <button v-if="season !== 'autumn' && maple.length" class="outline-btn archive-toggle" :aria-expanded="archiveOpen" @click="archiveOpen = !archiveOpen"><ScenicIcon :size="20" />{{ archiveOpen ? '收起秋季档案' : '查看秋季记录' }}</button><div v-if="season === 'autumn' && maple.length" class="interest-bar" :class="{ 'is-swapping': mapleSwapping }" role="group" aria-label="枫况排序偏好"><span>你更想看</span><button v-for="(label, key) in interestLabels" :key="key" :class="{ active: interest === key }" :aria-pressed="interest === key" :data-key="key" @click="chooseInterest(key)">{{ label }}</button><small aria-live="polite"><span :class="{ 'interest-loading': mapleSwapping }">{{ mapleSwapping ? '正在重排…' : interest ? interestHints[interest] : '可跳过' }}</span></small><i class="interest-progress" aria-hidden="true" /></div>
+        <TransitionGroup name="maple" tag="div" class="maple-grid" :class="{ 'is-swapping': mapleSwapping }" :aria-busy="mapleSwapping"><article v-for="record in displayMaple" :key="record.poiId" class="maple-card" tabindex="0" role="button" :aria-label="`查看${record.poi?.name}枫况详情`" @click="showMaple(record)" @keydown.enter="showMaple(record)" @keydown.space.prevent="showMaple(record)"><div class="maple-image"><img v-image-fade.fast :src="record.poi?.image" alt="" decoding="async" /></div><div class="maple-body"><span class="kicker">{{ record.poi?.name }}</span><h3>{{ record.stage }}</h3><p>{{ record.density }} · {{ record.view }}</p><LeafProgress v-if="season === 'autumn'" :percent="redPercent(record)" :label="record.poi?.name || '点位'" compact /><p v-else class="archive-note">秋季留影，当前不作红度判断</p><div class="maple-facts"><span><b>观测区间</b>{{ record.redBand }}</span><span><b>观察日期</b>{{ formatObserved(record.observedAt) }}</span></div><!-- 待官方查证，暂隐藏：来源与有效期 --></div></article></TransitionGroup>
         <div v-if="season === 'autumn' && !recommendedMaple.length" class="empty-state"><Leaf :size="24" /><b>暂无枫况记录</b><span>官方发布进度见上方记录。各景点的红叶占比尚未统计，后续按观测更新。</span></div>
         <!-- 待官方查证，暂隐藏：红叶占比口径说明
 <div class="coverage-note"><Info :size="18" /><span>官方进度与点位红叶占比口径不同；请结合发布日期和现场叶色查看。</span></div>

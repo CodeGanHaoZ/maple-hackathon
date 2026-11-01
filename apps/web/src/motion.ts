@@ -1,7 +1,6 @@
 import type { ObjectDirective } from 'vue'
 
-const observers = new WeakMap<HTMLElement, IntersectionObserver>()
-/** 只在进入视野时渐入一次；不支持观察器或减少动效时保持内容可见。 */
+const observers = new WeakMap<HTMLElement, IntersectionObserver>()/** 只在进入视野时渐入一次；不支持观察器或减少动效时保持内容可见。 */
 export const vReveal: ObjectDirective<HTMLElement> = {
   mounted(element) {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -19,10 +18,12 @@ export const vReveal: ObjectDirective<HTMLElement> = {
 }
 
 const imageCleanups = new WeakMap<HTMLImageElement, () => void>()
+/** v-image-fade.fast：列表内小图用 200ms 淡入，避免切换时出现 700ms 的「慢慢亮起来」。 */
 export const vImageFade: ObjectDirective<HTMLImageElement> = {
-  mounted(element) {
+  mounted(element, binding) {
     const reveal = () => element.classList.add('image-ready')
     element.classList.add('image-fade')
+    if (binding.modifiers.fast) element.classList.add('image-fade-fast')
     if (element.complete) reveal()
     element.addEventListener('load', reveal)
     element.addEventListener('error', reveal)
