@@ -2,8 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Armchair, BusFront, Info, MapPin, ParkingCircle, RefreshCw, Toilet, Search, LocateFixed, Leaf, Coffee, PawPrint, ArrowUpRight } from 'lucide-vue-next'
+import { Armchair, BusFront, Info, MapPin, ParkingCircle, RefreshCw, Toilet, Search, LocateFixed, Coffee, PawPrint, ArrowUpRight } from 'lucide-vue-next'
 import MapImageViewer from './MapImageViewer.vue'
+import MapleLeafIcon from './MapleLeafIcon.vue'
+
 import { loadMapPlaces, officialPlaceCatalog, distanceMeters, formatDistance, matchRecommendedPlace, type MapPlace, type Coordinates } from '../mapPlaces'
 
 type Point = { id: string; name: string; coordinates: [number, number] }
@@ -16,9 +18,9 @@ const key = import.meta.env.VITE_TIANDITU_KEY?.trim()
 const state = ref<'loading' | 'ready' | 'unavailable'>(key ? 'loading' : 'unavailable')
 const referenceMode = ref<'illustrated' | 'guide'>('illustrated')
 const recommendedGroups = [
-  { id: 'tea', title: '寻茶', icon: Coffee, places: ['千佛崖', '乾隆行宫遗址', '陆羽茶庄'] },
-  { id: 'maple', title: '寻枫', icon: Leaf, places: ['栖霞山山门殿', '彩虹明镜', '中大路', '陆羽茶庄', '凌枫阁', '枫林湖'] },
-  { id: 'pet', title: '遛宠', icon: PawPrint, places: ['彩虹明镜', '桃花湖', '御苑茶园', '始皇临江处'] }
+  { id: 'tea', title: '寻茶', icon: Coffee, iconProps: { size: 20 }, places: ['千佛崖', '乾隆行宫遗址', '陆羽茶庄'] },
+  { id: 'maple', title: '寻枫', icon: MapleLeafIcon, iconProps: { size: 20 }, places: ['栖霞山山门殿', '彩虹明镜', '中大路', '陆羽茶庄', '凌枫阁', '枫林湖'] },
+  { id: 'pet', title: '遛宠', icon: PawPrint, iconProps: { size: 20 }, places: ['彩虹明镜', '桃花湖', '御苑茶园', '始皇临江处'] }
 ]
 const recommendationNotice = ref('')
 const visible = ref<Record<string, boolean>>({ poi: true, toilet: true, shuttle: true, parking: true, rest: true, visitor: true })
@@ -238,7 +240,7 @@ onBeforeUnmount(() => { disposed = true; if (timer) clearTimeout(timer); map?.st
     <section class="map-recommendations" aria-labelledby="recommendation-title">
       <div class="map-section-heading"><h3 id="recommendation-title">推荐地点</h3><small class="section-note">参考园区导览折页</small></div>
       <div class="recommendation-grid"><article v-for="group in recommendedGroups" :key="group.id" class="recommendation-card">
-        <h4><component :is="group.icon" :size="20" />{{ group.title }}</h4>
+        <h4><component :is="group.icon" v-bind="group.iconProps" />{{ group.title }}</h4>
         <div class="recommendation-places"><button v-for="name in group.places" :key="name" @click="findRecommended(name)">{{ name }}<ArrowUpRight :size="14" /></button></div>
       </article></div>
       <p v-if="recommendationNotice" class="recommendation-notice" role="status"><Info :size="16" />{{ recommendationNotice }}</p>
