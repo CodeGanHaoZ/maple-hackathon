@@ -236,7 +236,7 @@ onBeforeUnmount(() => { disposed = true; if (timer) clearTimeout(timer); map?.st
       </div>
     </div>
     <section class="map-recommendations" aria-labelledby="recommendation-title">
-      <div class="map-section-heading"><h3 id="recommendation-title">推荐地点</h3><small>参考园区导览折页</small></div>
+      <div class="map-section-heading"><h3 id="recommendation-title">推荐地点</h3><small class="section-note">参考园区导览折页</small></div>
       <div class="recommendation-grid"><article v-for="group in recommendedGroups" :key="group.id" class="recommendation-card">
         <h4><component :is="group.icon" :size="20" />{{ group.title }}</h4>
         <div class="recommendation-places"><button v-for="name in group.places" :key="name" @click="findRecommended(name)">{{ name }}<ArrowUpRight :size="14" /></button></div>
