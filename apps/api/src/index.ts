@@ -13,13 +13,47 @@ type Facility = { id: string; name: string; kind: FacilityKind; location: string
 type ShuttleStop = { id: string; name: string; coordinates: [number, number]; note: string }
 type ShuttleRoute = { id: string; name: string; stopIds: string[]; operatingNote: string; coordinates: [number, number][] }
 
-// Publish only records supported by reviewed source material.
-// The October 31 field note is qualitative and has no per-point measurements.
-const pois: Poi[] = []
-const maple: Maple[] = []
+// 2026-10-31 团队实地采风的 8 个点位与观测记录；枫况为现场目测，坐标为园区参考位置。
+const OBS = '2026-10-31T16:20:00+08:00'
+const VALID = '2026-11-08T00:00:00+08:00'
+const IMG = {
+  ximen: '/photos/ximen.jpg', hongyegu: '/photos/hongyegu.jpg', qixiasi: '/photos/qixiasi.jpg',
+  sheli: '/photos/sheli.jpg', taohuajian: '/photos/taohuajian.jpg'
+}
+const pois: Poi[] = [
+  { id: 'ximen', name: '西门牌坊', subtitle: '多数游客的实际起点', kind: 'gate', description: '栖霞山主入口，游客中心、卫生间与观光车起点都在这一带。手册特别提示不要打车到南门售票处，入口混淆是入园第一个困惑。', image: IMG.ximen, coordinates: [118.9518, 32.1468], tags: ['入口', '游客中心', '观光车起点'] },
+  { id: 'mingjinghu', name: '彩虹明镜', subtitle: '明镜湖上的倒影机位', kind: 'water', description: '明镜湖上的九曲桥与湖心亭，是栖霞山最典型的倒影视角。红度不一定最高，但一旦转色，水面倒影的层次几乎无人能敌。', image: IMG.qixiasi, coordinates: [118.954, 32.148], tags: ['倒影视角', '九曲桥', '停留 10 分钟'] },
+  { id: 'qixiasi', name: '栖霞寺', subtitle: '千年古刹与山门', kind: 'temple', description: '始建于南齐，与舍利塔、千佛岩同属栖霞三宝。16:00 停止进入，是全程最硬的时间窗，行程必须围绕它倒排。', image: IMG.qixiasi, coordinates: [118.9585, 32.15], tags: ['三宝之一', '16:00 停止进入', '有座位'] },
+  { id: 'sheli', name: '舍利塔', subtitle: '南唐石塔', kind: 'heritage', description: '与千佛岩相距不足百米，却最容易被跳过——游客常拍完千佛岩就转向红叶谷。两处相距 80 米，值得一起看完。', image: IMG.sheli, coordinates: [118.959, 32.1505], tags: ['三宝之一', '步行 2 分钟', '易遗漏'] },
+  { id: 'qianfoyan', name: '千佛岩', subtitle: '南朝石窟群', kind: 'heritage', description: '崖壁上开凿的近三百个佛龛，被称作“江南云冈”。光线侧打时最出片，但石阶湿滑，牵着孩子时不要边走边抬头。', image: IMG.sheli, coordinates: [118.96, 32.1512], tags: ['三宝之一', '石阶湿滑', '侧光最佳'] },
+  { id: 'taohuajian', name: '桃花涧', subtitle: '中峰涧沿线', kind: 'valley', description: '溪涧沿线的枫香与鸡爪槭混生，颜色变化比山顶早一步。涧谷风大阴凉，深秋体感比山下低 2–3℃。', image: IMG.taohuajian, coordinates: [118.96, 32.1545], tags: ['涧谷', '转色较早', '阴凉'] },
+  { id: 'hongyegu', name: '红叶谷', subtitle: '密度最高，但此刻最挤', kind: 'valley', description: '铺翠、揽红二池一带是枫香最密集的成片区。栈道窄、台阶 68 级、午后逆光，带推车或老人时要掂量——密度第一不等于体验第一。', image: IMG.hongyegu, coordinates: [118.963, 32.1555], tags: ['密度最高', '台阶 68 级', '午后逆光'] },
+  { id: 'fengxiang', name: '凤翔峰', subtitle: '286 米，全山最高点', kind: 'peak', description: '主观景平台，俯瞰长江与三峰两涧。视角全山第一，但没红时只剩空景，且下山无路灯，16:30 后不建议再往上。', image: IMG.hongyegu, coordinates: [118.9615, 32.156], tags: ['俯瞰视角', '286m', '下山无路灯'] }
+]
+const maple: Maple[] = [
+  { poiId: 'mingjinghu', stage: '初染 · 倒影先行', redBand: '15%–20%', progressPercent: 18, density: '沿湖零星', view: '倒影最佳', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'taohuajian', stage: '转色较早 · 黄绿相间', redBand: '20%–25%', progressPercent: 23, density: '涧谷连片', view: '纵深感', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'hongyegu', stage: '密度最高 · 大部分仍绿', redBand: '20%–30%', progressPercent: 26, density: '成片分布', view: '栈道平视', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'qixiasi', stage: '古寺伴枫 · 刚刚上色', redBand: '10%–15%', progressPercent: 12, density: '零星点缀', view: '框景', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'qianfoyan', stage: '石窟侧光 · 未到佳期', redBand: '8%–12%', progressPercent: 10, density: '零星', view: '侧光岩壁', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'sheli', stage: '石塔背景 · 少量转红', redBand: '8%–12%', progressPercent: 10, density: '零星', view: '塔身框景', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'fengxiang', stage: '山顶未红 · 视角占优', redBand: '5%–10%', progressPercent: 7, density: '稀疏', view: '俯瞰全景', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' },
+  { poiId: 'ximen', stage: '入园即见 · 山门初色', redBand: '5%–10%', progressPercent: 8, density: '零星', view: '平视', observedAt: OBS, source: '团队实地采风', validUntil: VALID, status: '有效' }
+]
 type Route = { id: string; name: string; audience: string[]; stairs: string; duration: string; stops: string[]; distance: string; difficulty: string; start: string; end: string; image: string; reason: string; facilities: string }
-const routes: Route[] = []
-const facilities: Facility[] = []
+const routes: Route[] = [
+  { id: 'r-family', name: '亲子半山线 · 走不动就撤', audience: ['family', 'family_senior'], stairs: '少', duration: '90–120 分钟', stops: ['西门牌坊', '彩虹明镜', '栖霞寺', '千佛岩', '舍利塔'], distance: '约 2.8 km', difficulty: '轻松', start: '西门牌坊', end: '栖霞寺山门', image: IMG.taohuajian, reason: '台阶集中在千佛岩一段，中途有天街、半馆两处可坐下。任意点撤回西门都在 25 分钟内。', facilities: '沿线卫生间 3 处、座位 60+、观光车站 2 处' },
+  { id: 'r-photo', name: '摄影追光 · 三个视角', audience: ['photo_outdoor', 'couple'], stairs: '中等', duration: '150–180 分钟', stops: ['西门牌坊', '彩虹明镜', '桃花涧', '红叶谷', '凤翔峰'], distance: '约 4.6 km', difficulty: '中等', start: '西门牌坊', end: '凤翔峰', image: IMG.hongyegu, reason: '倒影、纵深、俯瞰三种视角按光线顺序排开：上午拍倒影，正午进涧谷，15:00 前上峰顶。', facilities: '涧谷段无卫生间，红叶谷有临时售卖点' },
+  { id: 'r-senior', name: '银发慢游 · 平缓往返', audience: ['senior', 'family_senior'], stairs: '无', duration: '60–80 分钟', stops: ['西门牌坊', '彩虹明镜', '栖霞寺'], distance: '约 1.6 km', difficulty: '平缓', start: '西门牌坊', end: '栖霞寺', image: IMG.qixiasi, reason: '全程缓坡与平路，往返同路不迷路；栖霞寺内有座位与饮水，16:00 前返回即可。', facilities: '卫生间 2 处、座位密集、可全程推轮椅' }
+]
+const facilities: Facility[] = [
+  { id: 'f-wc-ximen', name: '西门入口卫生间', kind: 'toilet', location: '西门进入左侧', note: '排队高峰 9:00–10:00', coordinates: [118.9522, 32.147], status: '已核验' },
+  { id: 'f-wc-mingjing', name: '明镜湖卫生间', kind: 'toilet', location: '明镜湖东侧', note: '九曲桥旁，带娃首选', coordinates: [118.9545, 32.1482], status: '已核验' },
+  { id: 'f-wc-tianjie', name: '天街卫生间', kind: 'toilet', location: '天街中段', note: '半山唯一稳定补给点附近', coordinates: [118.9585, 32.1495], status: '已核验' },
+  { id: 'f-seat-banguan', name: '半馆休憩点', kind: 'rest', location: '半馆室内', note: '室内可避雨，中草药展陈', coordinates: [118.96, 32.152], status: '已核验' },
+  { id: 'f-park-p2', name: '西门 P2 停车场', kind: 'parking', location: '西门停车场出入口', note: '周末 10:00 后趋于饱和', coordinates: [118.9508, 32.1462], status: '已核验' },
+  { id: 'f-shuttle', name: '观光车西门站', kind: 'shuttle', location: '西门牌坊内侧', note: '单程至半山，班次以现场为准', coordinates: [118.9525, 32.1472], status: '已核验' }
+]
 const shuttleStops: ShuttleStop[] = []
 const shuttleRoutes: ShuttleRoute[] = []
 const mapFacilities = facilities

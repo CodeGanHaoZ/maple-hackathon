@@ -44,9 +44,54 @@ const localDate = computed(() => new Intl.DateTimeFormat('zh-CN', { timeZone: 'A
 const archiveOpen = ref(false)
 const selectedTopic = ref<string | null>(null)
 const cultureTopics = [
-  { id: 'heritage', title: '山寺与遗迹', subtitle: '读懂一座山的时间', icon: Landmark, description: '以千佛岩、舍利塔等人文线索建立景点档案。首版先展示主题入口，历史年代、开放范围与讲解稿待景区审核后发布。', status: '讲解内容待核验' },
-  { id: 'tea', title: '陆羽与茶文化', subtitle: '让停留多一种理由', icon: BookOpen, description: '围绕陆羽茶文化与茶庄体验补充四季内容。活动、地点、预约和收费信息须经运营方核验后上线，当前不提供虚构预约。', status: '体验信息待核验' },
-  { id: 'nature', title: '四季山林', subtitle: '从一片叶，到一座山', icon: Trees, description: '用四季自然观察、湖岸与林下慢行补足全年体验。花期、天气、道路通行与设施状态需持续更新，首版保留地图与服务入口。', status: '自然主题策划' }
+  { id: 'heritage', title: '山寺与遗迹', subtitle: '六朝以来，一座山的时间', tag: '栖霞三宝', icon: Landmark, image: '/photos/sheli.jpg',
+    description: '南齐明僧绍隐居摄山、舍宅为寺，后来依山开窟造像，栖霞的六朝印记由此开始。',
+    sections: [
+      { h: '舍宅为寺', p: '明僧绍隐居摄山、舍宅为寺，是栖霞寺与山中佛教空间的起点；此后的开窟造像，让寺院、石窟与碑刻一起进入这座山。' },
+      { h: '栖霞三宝', p: '明征君碑、舍利塔、千佛岩合称“栖霞三宝”。明征君碑纪念明僧绍，唐上元三年（676 年）奉敕修建，唐高宗撰文、高正臣书写；舍利塔有隋代始建、南唐重建的层次；千佛岩依山开凿，是江南南朝石窟的重要遗存。' },
+      { h: '重修之后的今天', p: '山中建筑经历过毁损、重修与保护，始建年代、重建年代与今天看到的实物常属不同层次。看的时候把它们分开，历史的层次反而更清楚。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；开放范围与讲解以园区公告为准。' },
+  { id: 'hongye', title: '红叶与赏枫习俗', subtitle: '“春牛首，秋栖霞”', tag: '市级非遗', icon: Leaf, image: '/photos/hongyegu.jpg',
+    description: '红叶不止一种颜色，赏枫也不止一个地方。它连着南京人的秋天。',
+    sections: [
+      { h: '红叶不只一种', p: '枫香、三角枫、鸡爪槭都是山中的红叶植物。红叶谷在御花园与凤翔峰西南山腰相接的一带，谷内有“铺翠”“揽红”二池与夕佳亭长廊；古道、湖边和亭旁，各有不同视角。' },
+      { h: '为什么说秋栖霞', p: '“春牛首，秋栖霞”与南京人的游赏生活相连，清代游记、诗集与《摄山游草》中都留有线索。“栖霞山赏枫习俗”已列入南京市非物质文化遗产代表性项目名录。' },
+      { h: '诗文中的红叶', p: '孔尚任写“放目苍崖万丈，拂头红树千枝”。红叶随气温渐次变色，同一面湖水在不同秋日会呈现不同颜色，这也是每年都值得再来的理由。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；当年红度以现场观测为准。' },
+  { id: 'xinggong', title: '乾隆行宫与遗址', subtitle: '六下江南，五次驻跸', tag: '遗址尚存', icon: Map, image: '/photos/qixiasi.jpg',
+    description: '行宫主体建筑已不存，桥、墙基与柱础还在山中，成为辨认旧日空间的线索。',
+    sections: [
+      { h: '六到栖霞', p: '乾隆六下江南、六到栖霞山，五次驻跸栖霞行宫。首次南巡时行宫尚未建成，从第二次南巡起，这里成为他在南京的驻跸地之一。' },
+      { h: '行宫原来的空间', p: '行宫依山布置，采用前朝后寝的格局。春雨桥、万松山房、千佛岩纱帽峰与畅观亭，是认识这片空间的方位线索。' },
+      { h: '今天留下的线索', p: '古桥、部分墙基、柱础与排水遗迹仍在。春雨桥跨中峰涧，连着行宫外墙与内外通道；小营盘遗址地势较高，可俯瞰行宫及周边，让人看见宫殿之外的驻军生活。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；遗址范围与保护要求以园区公告为准。' },
+  { id: 'tea', title: '陆羽与泉水茶文化', subtitle: '布叶春风暖，盈筐白日斜', tag: '泉与题刻', icon: BookOpen, image: '/photos/taohuajian.jpg',
+    description: '山路、泉水与友人往来，把茶事留在了这座山里。',
+    sections: [
+      { h: '山中采茶', p: '陆羽在栖霞山采茶、试茶、品茶的故事，连着山路与泉水。皇甫冉《送陆鸿渐栖霞寺采茶》写“布叶春风暖，盈筐白日斜”，又写到“时宿野人家”。' },
+      { h: '白鹿泉与试茶亭', p: '白鹿泉遗址与行宫空间相关；“白乳泉试茶亭”则是摩崖题刻上的文字，摩崖上可以直接辨认字迹。' },
+      { h: '品外泉与珍珠泉', p: '品外泉得名于陆羽品泉的旧事：泉水很好，却未列入品评，因而称“品外”。珍珠泉连着旧泉眼、题字、桃花湖与后来的亭景。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；茶庄营业与体验项目以现场为准。' },
+  { id: 'geology', title: '地质与古海洋', subtitle: '石头里的时间，比人更早', tag: '栖霞组', icon: Mountain, image: '/photos/ximen.jpg',
+    description: '“栖霞组”“栖霞灰岩”让这座山与地质研究相连，山石记录着远早于人物的时间。',
+    sections: [
+      { h: '一座山里的古海洋', p: '栖霞山的自然内容还包括岩石、地层与化石。今天看到的山石，记录着比建筑和人物更早的时间。' },
+      { h: '青锋剑石的两种讲述', p: '民间传说说它是乾隆佩剑所化；从地质看，是燧石与石灰岩风化速度不同，较耐风化的部分显露出来，形成眼前的黑色条纹。传说记下人们怎样给自然命名，地质解释眼前的形态。' },
+      { h: '化石与地质图', p: '叠浪岩的层理记录自然变化，明征君碑的石材中可见海百合茎化石。1932 年，李四光等人在栖霞山开展地质调查并绘制地质图。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；野外地层观察请勿敲击采集。' },
+  { id: 'town', title: '栖霞老街与古镇', subtitle: '山门之外的市井', tag: '宋元有市', icon: Clock3, image: '/photos/qixiasi.jpg',
+    description: '游客从古镇进山，游山之后又回到街巷——山上的文化因此留在日常里。',
+    sections: [
+      { h: '山前的集市', p: '宋元时期，山前已有“栖霞市”的记载；到了明清，栖霞街出现在游记中，成为人们进山游览的一段路。九乡河、栖霞桥与御龙桥记忆，构成山前的历史空间。' },
+      { h: '手艺与行当', p: '老街居民中，有以錾石为业的人。山中的石料、碑刻与游览活动，又连着石匠、拓碑与向导等行当；1914 年黄炎培来访时，由李祯祥担任向导。' },
+      { h: '茶肆与往来', p: '徐十郎茶肆与山前的饮茶生活相连。山中采茶、泉边试茶、街上饮茶，是这片地方生活的不同侧面。' }
+    ],
+    status: '内容据《栖霞山文化故事资料》整理；古镇业态以商户实际经营为准。' }
 ]
 const topic = computed(() => cultureTopics.find(item => item.id === selectedTopic.value))
 const storedAudience = readPreference('sessionStorage', 'maple-audience')
@@ -187,18 +232,18 @@ function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; s
         <div class="section-heading compact"><span class="kicker">MAPLE CONDITION</span><h2>枫况记录</h2></div>
         <div class="leaf-stage-guide"><span><ScenicIcon class="leaf-green" :size="22" filled />青绿生长</span><span><ScenicIcon class="leaf-yellow" :size="22" filled />黄绿渐染</span><span><ScenicIcon class="leaf-red" :size="22" filled />红叶渐盛</span><small>叶色示意，不作转红日期预测</small></div>
         <button v-if="season !== 'autumn' && maple.length" class="outline-btn archive-toggle" :aria-expanded="archiveOpen" @click="archiveOpen = !archiveOpen"><ScenicIcon :size="20" />{{ archiveOpen ? '收起秋季档案' : '查看秋季记录' }}</button><div v-if="season === 'autumn' && maple.length" class="interest-bar"><span>你更想看</span><button v-for="(label, key) in interestLabels" :key="key" :class="{ active: interest === key }" @click="interest = interest === key ? null : key">{{ label }}</button><small>可跳过</small></div>
-        <TransitionGroup name="cards" tag="div" class="maple-grid"><article v-for="record in displayMaple" :key="record.poiId" class="maple-card" v-reveal tabindex="0" role="button" :aria-label="`查看${record.poi?.name}枫况详情`" @click="showMaple(record)" @keydown.enter="showMaple(record)" @keydown.space.prevent="showMaple(record)"><div class="maple-image"><img v-image-fade :src="record.poi?.image" alt="" /><span class="status-stamp" :class="{ stale: !isCurrent(record) }">{{ season === 'autumn' && isCurrent(record) ? '有效观测' : '秋季档案' }}</span></div><div class="maple-body"><span class="kicker">{{ record.poi?.name }}</span><h3>{{ record.stage }}</h3><p>{{ record.density }} · {{ record.view }}</p><LeafProgress v-if="season === 'autumn'" :percent="redPercent(record)" :label="record.poi?.name || '点位'" compact /><p v-else class="archive-note">秋季留影，当前不作红度判断</p><div class="maple-facts"><span><b>观测区间</b>{{ record.redBand }}</span><span><b>观察日期</b>{{ record.observedAt }}</span></div><small>{{ record.source }} · 有效至 {{ record.validUntil.slice(0, 10) }}</small></div></article></TransitionGroup>
+        <TransitionGroup name="cards" tag="div" class="maple-grid"><article v-for="record in displayMaple" :key="record.poiId" class="maple-card" v-reveal tabindex="0" role="button" :aria-label="`查看${record.poi?.name}枫况详情`" @click="showMaple(record)" @keydown.enter="showMaple(record)" @keydown.space.prevent="showMaple(record)"><div class="maple-image"><img v-image-fade :src="record.poi?.image" alt="" /></div><div class="maple-body"><span class="kicker">{{ record.poi?.name }}</span><h3>{{ record.stage }}</h3><p>{{ record.density }} · {{ record.view }}</p><LeafProgress v-if="season === 'autumn'" :percent="redPercent(record)" :label="record.poi?.name || '点位'" compact /><p v-else class="archive-note">秋季留影，当前不作红度判断</p><div class="maple-facts"><span><b>观测区间</b>{{ record.redBand }}</span><span><b>观察日期</b>{{ record.observedAt }}</span></div><small>{{ record.source }} · 有效至 {{ record.validUntil.slice(0, 10) }}</small></div></article></TransitionGroup>
         <div v-if="season === 'autumn' && !recommendedMaple.length" class="empty-state"><Leaf :size="24" /><b>暂无按点位核验的枫况记录</b><span>官方发布进度见上方记录。各景点的红叶占比尚未统计，后续按观测更新。</span></div>
         <div class="coverage-note"><Info :size="18" /><span>官方进度与点位红叶占比口径不同；请结合发布日期和现场叶色查看。</span></div>
       </section>
 
-      <section v-if="nav === 'maple'" class="culture-section"><div class="section-heading"><span class="kicker">VISIT INFORMATION</span><h2>游览内容</h2></div><div class="culture-grid"><button v-for="item in cultureTopics" :key="item.id" class="culture-card" v-reveal @click="selectedTopic = item.id"><component :is="item.icon" :size="22" /><span class="culture-copy"><h3>{{ item.title }}</h3><small>{{ item.status }}</small></span><ArrowRight :size="18" /></button></div></section>
+      <section v-if="nav === 'maple'" class="culture-section"><div class="section-heading"><span class="kicker">VISIT INFORMATION</span><h2>游览内容</h2></div><div class="culture-grid"><button v-for="item in cultureTopics" :key="item.id" class="culture-card" v-reveal @click="selectedTopic = item.id"><component :is="item.icon" :size="22" /><span class="culture-copy"><h3>{{ item.title }}</h3><small>{{ item.tag }}</small></span><ArrowRight :size="18" /></button></div></section>
 
       <section v-if="nav === 'chat'" class="content-section chat-page"><div class="section-heading compact"><span class="kicker">TEXT COMPANION</span><h2>问一句，先把选择变清楚。</h2><p>伴游依据已发布的结构化信息回答，缺少核验资料时会明确说明。</p></div><div class="chat-panel"><TransitionGroup name="messages" tag="div" class="chat-messages"><div v-for="(item, index) in messages" :key="index" class="chat-line" :class="item.role"><span v-if="item.role === 'assistant'" class="chat-mark"><ScenicIcon :size="19" /></span><p>{{ item.text }}</p></div><div v-if="loading" key="typing" class="chat-line assistant typing"><span class="chat-mark"><RefreshCw :size="14" /></span><p>正在整理信息<span class="typing-dots">…</span></p></div></TransitionGroup><form class="chat-input" @submit.prevent="sendMessage"><input v-model="message" aria-label="输入问题" placeholder="例如：带老人，想了解路线和设施" maxlength="500" /><button class="primary-btn" type="submit" aria-label="发送"><Send :size="18" /></button></form><div class="chat-suggestions"><button @click="message = '带老人，推荐一条路线'">带老人，推荐路线</button><button @click="message = '哪里有厕所？'">哪里有厕所？</button><button @click="message = '现在枫况怎样？'">现在枫况怎样？</button></div></div></section>
 
 
       </div></Transition>
-      <Transition name="drawer"><section v-if="selectedPoi || selectedRoute || selectedMaple || topic" class="detail-drawer"><button class="drawer-close" aria-label="关闭详情" @click="closeDetail"><X :size="18" /></button><template v-if="topic"><span class="kicker">QIXIA CULTURE NOTES</span><h2>{{ topic.title }}</h2><p class="drawer-subtitle">{{ topic.subtitle }}</p><p>{{ topic.description }}</p><div class="info-callout"><ShieldCheck :size="18" />{{ topic.status }}</div><button class="outline-btn" @click="selectNav('map')">先看地图与服务 <Map :size="16" /></button></template><template v-else-if="selectedRoute"><img v-image-fade :src="selectedRoute.image" alt="" class="drawer-image" /><span class="kicker">ROUTE DETAIL</span><h2>{{ selectedRoute.name }}</h2><div class="detail-stats"><span><Clock3 :size="16" />{{ selectedRoute.duration }}</span><span><MapPin :size="16" />{{ selectedRoute.distance }}</span><span><Mountain :size="16" />{{ selectedRoute.difficulty }}</span></div><p>{{ selectedRoute.reason }}</p><h4>路段顺序</h4><div class="stop-line"><span v-for="(stop, i) in selectedRoute.stops" :key="stop"><b>{{ i + 1 }}</b>{{ stop }}</span></div><div class="info-callout"><ShieldCheck :size="18" />{{ selectedRoute.facilities }}</div></template><template v-else-if="selectedPoi"><img v-image-fade :src="selectedPoi.image" alt="" class="drawer-image" /><span class="kicker">POINT OF INTEREST</span><h2>{{ selectedPoi.name }}</h2><p class="drawer-subtitle">{{ selectedPoi.subtitle }}</p><p>{{ selectedPoi.description }}</p><div class="tag-row"><span v-for="tag in selectedPoi.tags" :key="tag">{{ tag }}</span></div><div v-if="selectedMaple" class="maple-detail"><h4>枫况观测 · {{ isCurrent(selectedMaple) ? '有效' : '历史记录' }}</h4><LeafProgress v-if="season === 'autumn'" :percent="redPercent(selectedMaple)" :label="selectedPoi.name" /><p v-else class="archive-note">秋季档案，不代表当前季节状态。</p><div class="detail-stats"><span><b>红度</b>{{ selectedMaple.redBand }}</span><span><b>密度</b>{{ selectedMaple.density }}</span><span><b>视角</b>{{ selectedMaple.view }}</span></div><small>{{ selectedMaple.observedAt }} · {{ selectedMaple.source }} · 有效至 {{ selectedMaple.validUntil.slice(0, 10) }}</small></div><button class="outline-btn" @click="selectNav('map')">查看关联路线 <ExternalLink :size="16" /></button></template></section></Transition>
+      <Transition name="drawer"><section v-if="selectedPoi || selectedRoute || selectedMaple || topic" class="detail-drawer"><button class="drawer-close" aria-label="关闭详情" @click="closeDetail"><X :size="18" /></button><template v-if="topic"><img v-image-fade :src="topic.image" alt="" class="drawer-image" /><span class="kicker">QIXIA CULTURE NOTES</span><h2>{{ topic.title }}</h2><p class="drawer-subtitle">{{ topic.subtitle }}</p><p>{{ topic.description }}</p><div class="topic-sections"><div v-for="sec in topic.sections" :key="sec.h"><h4>{{ sec.h }}</h4><p>{{ sec.p }}</p></div></div><div class="drawer-foot"><p class="drawer-source"><ShieldCheck :size="15" />{{ topic.status }}</p><button class="drawer-action" @click="selectNav('map')">先看地图与服务 <Map :size="16" /></button></div></template><template v-else-if="selectedRoute"><img v-image-fade :src="selectedRoute.image" alt="" class="drawer-image" /><span class="kicker">ROUTE DETAIL</span><h2>{{ selectedRoute.name }}</h2><div class="detail-stats"><span><Clock3 :size="16" />{{ selectedRoute.duration }}</span><span><MapPin :size="16" />{{ selectedRoute.distance }}</span><span><Mountain :size="16" />{{ selectedRoute.difficulty }}</span></div><p>{{ selectedRoute.reason }}</p><h4>路段顺序</h4><div class="stop-line"><span v-for="(stop, i) in selectedRoute.stops" :key="stop"><b>{{ i + 1 }}</b>{{ stop }}</span></div><div class="info-callout"><ShieldCheck :size="18" />{{ selectedRoute.facilities }}</div></template><template v-else-if="selectedPoi"><img v-image-fade :src="selectedPoi.image" alt="" class="drawer-image" /><span class="kicker">POINT OF INTEREST</span><h2>{{ selectedPoi.name }}</h2><p class="drawer-subtitle">{{ selectedPoi.subtitle }}</p><p>{{ selectedPoi.description }}</p><div class="tag-row"><span v-for="tag in selectedPoi.tags" :key="tag">{{ tag }}</span></div><div v-if="selectedMaple" class="maple-detail"><h4>枫况观测 · {{ isCurrent(selectedMaple) ? '有效' : '历史记录' }}</h4><LeafProgress v-if="season === 'autumn'" :percent="redPercent(selectedMaple)" :label="selectedPoi.name" /><p v-else class="archive-note">秋季档案，不代表当前季节状态。</p><div class="detail-stats"><span><b>红度</b>{{ selectedMaple.redBand }}</span><span><b>密度</b>{{ selectedMaple.density }}</span><span><b>视角</b>{{ selectedMaple.view }}</span></div><small>{{ selectedMaple.observedAt }} · {{ selectedMaple.source }} · 有效至 {{ selectedMaple.validUntil.slice(0, 10) }}</small></div><button class="outline-btn" @click="selectNav('map')">查看关联路线 <ExternalLink :size="16" /></button></template></section></Transition>
     </main>
     <SeasonSidebar v-model="previewSeason" :season="season" :options="seasonOptions" />
 

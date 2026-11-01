@@ -387,3 +387,14 @@ h1 em { display: block; color: var(--color-primary); font-style: normal; }
 .recommendation-notice { display: flex; gap: 8px; align-items: flex-start; padding: 12px; background: var(--color-primary-soft); border-radius: 8px; font-size: 13px; }
 .recommendation-notice svg { flex-shrink: 0; margin-top: 2px; }
 @media(max-width: 680px) { .recommendation-grid { grid-template-columns: 1fr; gap: 10px; } .recommendation-card { padding: 15px; } }
+
+.topic-sections { display: grid; gap: 15px; margin: 16px 0 18px; }
+.topic-sections h4 { margin: 0 0 5px; color: var(--ink-700); font: 400 16px var(--font-serif-cn); }
+.topic-sections p { margin: 0; color: var(--ink-500); font-size: 13px; line-height: 1.8; }
+.culture-card small { align-self: flex-start; }
+
+.drawer-foot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--paper-300); display: grid; gap: 14px; }
+.drawer-source { display: flex; align-items: flex-start; gap: 7px; margin: 0; color: var(--ink-300); font-size: 12px; line-height: 1.65; }
+.drawer-source svg { flex: none; margin-top: 2px; opacity: .7; }
+.drawer-action { width: 100%; min-height: 48px; border: 1px solid var(--paper-400); border-radius: var(--radius-md); background: var(--paper-000); color: var(--ink-600); font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.drawer-action:hover { border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); }
