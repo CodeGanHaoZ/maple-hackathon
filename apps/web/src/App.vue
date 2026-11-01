@@ -151,6 +151,13 @@ const message = ref('')
 const messages = ref<{ role: 'assistant' | 'user'; text: string; citations?: string[] }[]>([{ role: 'assistant', text: '你好，我是栖霞山伴游。回答只用三类来源：官方公众号推文、园区导览折页、团队实地采风。\n可以问我：老人或亲子的路线、现在哪片最红、厕所在哪、栖霞寺几点停止进入。', citations: ['栖霞山官方公众号 · 2026-10-30 枫情预报', '园区导览折页', '团队 2026-10-31 实地采风'] }])
 const loading = ref(false)
 const toast = ref('')
+/** 提示条统一 3 秒自动收起；再次弹出会重置计时，不必手动点关闭。 */
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+watch(toast, (value) => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = value ? setTimeout(() => { toast.value = '' }, 3000) : undefined
+})
+onBeforeUnmount(() => { if (toastTimer) clearTimeout(toastTimer) })
 const dataLoading = ref(true)
 const dataError = ref(false)
 const hasData = ref(false)
