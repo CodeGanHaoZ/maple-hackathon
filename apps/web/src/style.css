@@ -398,3 +398,51 @@ h1 em { display: block; color: var(--color-primary); font-style: normal; }
 .drawer-source svg { flex: none; margin-top: 2px; opacity: .7; }
 .drawer-action { width: 100%; min-height: 48px; border: 1px solid var(--paper-400); border-radius: var(--radius-md); background: var(--paper-000); color: var(--ink-600); font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
 .drawer-action:hover { border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); }
+
+/* ============ 叙事主题：读一首诗 等一山红 ============ */
+.theme-section { max-width: var(--container-xl); margin: 0 auto; padding: 56px max(var(--gutter), 5vw) 4px; }
+.theme-plate { border-top: 1px solid var(--paper-400); padding-top: 30px; }
+.theme-line { margin: 18px 0 18px; color: var(--ink-500); font: 400 clamp(30px, 4.4vw, 50px)/1.32 var(--font-serif-cn); letter-spacing: .04em; }
+.theme-line span { display: block; }
+.theme-line .theme-line-red { color: #9c3b2e; }
+.theme-lead { max-width: 600px; margin: 0; color: var(--ink-300); font-size: 14px; line-height: 1.95; }
+
+.theme-threads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 34px 0 6px; }
+.theme-thread { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 20px 22px 18px; border: var(--border-paper); border-radius: var(--radius-md); background: var(--paper-000); }
+.theme-thread > b { color: var(--gilt-600); font: 400 34px/1 var(--font-serif-cn); letter-spacing: .06em; }
+.theme-thread h3 { margin: 0 0 7px; color: var(--ink-700); font: 400 17px/1 var(--font-serif-cn); letter-spacing: .22em; }
+.theme-thread p { margin: 0; color: var(--ink-300); font-size: 12.5px; line-height: 1.85; }
+.theme-thread small { margin-top: auto; padding-top: 10px; color: var(--gilt-600); font: 11px var(--font-kai); letter-spacing: .04em; }
+
+.poem-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 30px; }
+.poem-board-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding-bottom: 2px; }
+.poem-board-head small { min-width: 0; color: var(--ink-300); font: 11.5px var(--font-kai); }
+.poem-card { position: relative; min-width: 0; display: flex; flex-direction: column; margin: 0; padding: 24px 24px 20px; border: var(--border-paper); border-radius: var(--radius-md); background: var(--paper-000); cursor: pointer; transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.poem-card:hover { border-color: var(--paper-400); transform: translateY(-1px); }
+.poem-card.open { border-color: #9c3b2e; }
+.poem-card:focus-visible { outline: 2px solid #9c3b2e; outline-offset: 2px; }
+.poem-theme { align-self: flex-start; color: #9c3b2e; font: 11px var(--font-kai); letter-spacing: .16em; }
+.poem-card blockquote { margin: 14px 0 0; }
+.poem-card blockquote p { margin: 0; color: var(--ink-700); font: 400 19px/1.85 var(--font-kai); letter-spacing: .05em; }
+.poem-card figcaption { display: flex; align-items: baseline; gap: 9px; margin-top: 14px; }
+.poem-card figcaption b { color: var(--ink-500); font: 400 13px var(--font-serif-cn); }
+.poem-card figcaption span { color: var(--ink-300); font: 11.5px var(--font-kai); }
+.poem-full { margin-top: 12px; padding: 12px 14px; border-left: 2px solid var(--paper-400); }
+.poem-full p { margin: 0; color: var(--ink-300); font: 13px/1.95 var(--font-kai); letter-spacing: .04em; }
+.poem-note { margin: 14px 0 0; color: var(--ink-500); font-size: 12px; line-height: 1.75; }
+.poem-source { margin-top: auto; padding-top: 12px; color: var(--ink-300); font: 11px var(--font-kai); letter-spacing: .02em; }
+
+.theme-caveat { display: flex; align-items: flex-start; gap: 7px; max-width: 720px; margin: 22px 0 0; color: var(--ink-300); font-size: 11.5px; line-height: 1.75; }
+.theme-caveat svg { flex: none; margin-top: 2px; opacity: .65; }
+
+@media (max-width: 860px) {
+  .theme-section { padding-top: 40px; }
+  .theme-threads { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .poem-board { grid-template-columns: minmax(0, 1fr); }
+  .theme-thread { flex-direction: row; align-items: flex-start; gap: 14px; }
+  .theme-thread > div { min-width: 0; }
+  .theme-thread > b { flex: none; font-size: 26px; }
+  .theme-thread small { display: none; }
+  .poem-card blockquote p { font-size: 17px; }
+  .poem-board-head { flex-direction: column; align-items: flex-start; }
+}

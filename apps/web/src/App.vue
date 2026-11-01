@@ -43,6 +43,41 @@ const localYear = computed(() => new Intl.DateTimeFormat('en-US', { timeZone: 'A
 const localDate = computed(() => new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'long', day: 'numeric' }).format(now.value))
 const archiveOpen = ref(false)
 const selectedTopic = ref<string | null>(null)
+// 园区核心主题「读一首诗 等一山红」：拆成 诗 / 山 / 红 三个核心主体
+const expandedPoem = ref<string | null>(null)
+function togglePoem(id: string) { expandedPoem.value = expandedPoem.value === id ? null : id }
+const narrativeThreads = [
+  { key: 'shi', glyph: '诗', label: '读', body: '诗是这座山最早的导览。《摄山志》「诗」章存 328 条记录，卷首「天章·诗」与卷六、卷七各一卷。碑刻、摩崖与志书，比任何一份攻略都更早写下该看什么。', tag: '卷六·卷七 诗' },
+  { key: 'shan', glyph: '山', label: '摄', body: '摄山之名，取「山中多药草可以摄生」。三峰两涧——虎山、凤翔峰、龙山与桃花涧、中峰涧，是登临者要回答的第一道题：往哪走。', tag: '摄山 · 三峰两涧' },
+  { key: 'hong', glyph: '红', label: '等', body: '红是分批到的。同一面湖，不同秋日颜色不同；同一座山，不同点位转色先后不同。所以真问题不是「哪天红」，而是「今天几点、站哪看」。', tag: '渐次转色' }
+]
+const poems = [
+  { id: 'cai', theme: '等一山红', title: '寄摄山张白云', author: '蔡㺱',
+    lines: ['红叶相招策杖游，', '岩扉一隔几经秋。'],
+    full: ['红叶相招策杖游，岩扉一隔几经秋。', '荷衣遥想凌千仞，翠滴沧波万里流。'],
+    note: '红是邀请，杖是准备。这句把「等」写成了动身。', source: '《摄山志》卷七·诗，第 570 页', caveat: '作者署名待核' },
+  { id: 'li', theme: '红绿之间', title: '登栖霞寺峰怀望', author: '李绅',
+    lines: ['林叶脱红影，', '竹烟含绿濡。'],
+    full: ['香印烟火息，法堂钟磬余。', '纱灯照晨焰，释子安禅居。', '林叶脱红影，竹烟含绿濡。', '疎星珠错落，耀月宇参差。'],
+    note: '红与绿同时在场，这就是十月底的栖霞：不是全山一起红。', source: '《摄山志》卷六·诗，第 520 页', caveat: '' },
+  { id: 'huang', theme: '山中茶事', title: '送陆鸿渐栖霞寺采茶', author: '皇甫冉',
+    lines: ['布叶春风暖，', '盈筐白日斜。'],
+    full: ['采茶非采菜，逺远上层厓。', '布叶春风暖，盈筐白日斜。', '旧知山寺路，时宿野人家。'],
+    note: '采茶等春，赏枫等秋，同一座山两季的等待方式。', source: '《摄山志》卷六·诗，第 519 页', caveat: '转录待校勘' },
+  { id: 'gu', theme: '山寺夜色', title: '栖霞山', author: '顾况',
+    lines: ['山僧后夜初入定，', '闻似不闻山月晓。'],
+    full: ['栖霞山中子规鸟口邉出血啼不了。', '山僧后夜初入定，闻似不闻山月晓。'],
+    note: '山里的声音比景色更留得住。夜游开放以园区公告为准。', source: '《摄山志》卷六·诗，第 520 页', caveat: '转录待校勘' },
+  { id: 'xu', theme: '同行', title: '仰同令君栖霞寺山房夜话', author: '徐孝克',
+    lines: ['愿言于此处，', '携手屡相逢。'],
+    full: ['戒坛青石路，灵相紫金峰。', '影进皈依鸽，餐迎守护龙。', '晨朝宣宝偈，寒夜敛疎钟。', '愿言于此处，携手屡相逢。'],
+    note: '一千五百年前的句子，说的是同行的人还会再来。', source: '《摄山志》卷六·诗，第 518 页', caveat: '转录待校勘' },
+  { id: 'jiang', theme: '山寺暮色', title: '静卧栖霞寺房望徐祭酒', author: '江总',
+    lines: ['连崖夕气合，', '虚宇宿云霾。'],
+    full: ['绝俗俗无侣，修心心自斋。', '连崖夕气合，虚宇宿云霾。', '卧藤新接户，欹石久成阶。'],
+    note: '傍晚的崖与云，是栖霞寺一带最容易被赶路错过的一段。', source: '《摄山志》卷六·诗，第 512 页', caveat: '' }
+]
+
 const cultureTopics = [
   { id: 'heritage', title: '山寺与遗迹', subtitle: '六朝以来，一座山的时间', tag: '栖霞三宝', icon: Landmark, image: '/photos/sheli.jpg',
     description: '南齐明僧绍隐居摄山、舍宅为寺，后来依山开窟造像，栖霞的六朝印记由此开始。',
@@ -237,6 +272,32 @@ function closeDetail() { selectedPoi.value = null; selectedRoute.value = null; s
         <div class="coverage-note"><Info :size="18" /><span>官方进度与点位红叶占比口径不同；请结合发布日期和现场叶色查看。</span></div>
       </section>
 
+      <section v-if="nav === 'maple'" class="theme-section">
+        <div class="theme-plate">
+          <span class="kicker">PARK THEME · 园区核心主题</span>
+          <h2 class="theme-line"><span>读一首诗</span><span class="theme-line-red">等一山红</span></h2>
+          <p class="theme-lead">栖霞山有两个名字。摄山说的是它能摄生，栖霞说的是它半山落霞。诗写在红之前，红是等出来的——这座山最老的玩法，是先把诗读了，再等它红。</p>
+        </div>
+        <div class="theme-threads">
+          <article v-for="t in narrativeThreads" :key="t.key" class="theme-thread">
+            <b>{{ t.glyph }}</b>
+            <div><h3>{{ t.label }}</h3><p>{{ t.body }}</p></div>
+            <small>{{ t.tag }}</small>
+          </article>
+        </div>
+        <div class="poem-board">
+          <div class="poem-board-head"><span class="kicker">POEMS · 摄山志</span><small>《摄山志》卷六·卷七「诗」 · 数据库转录</small></div>
+          <figure v-for="poem in poems" :key="poem.id" class="poem-card" :class="{ open: expandedPoem === poem.id }" tabindex="0" role="button" :aria-expanded="expandedPoem === poem.id" @click="togglePoem(poem.id)" @keydown.enter="togglePoem(poem.id)" @keydown.space.prevent="togglePoem(poem.id)">
+            <span class="poem-theme">{{ poem.theme }}</span>
+            <blockquote><p v-for="line in poem.lines" :key="line">{{ line }}</p></blockquote>
+            <figcaption><b>{{ poem.title }}</b><span>{{ poem.author }}</span></figcaption>
+            <div v-if="expandedPoem === poem.id" class="poem-full"><p v-for="line in poem.full" :key="line">{{ line }}</p></div>
+            <p class="poem-note">{{ poem.note }}</p>
+            <small class="poem-source">{{ poem.source }}<template v-if="poem.caveat"> · {{ poem.caveat }}</template></small>
+          </figure>
+        </div>
+        <p class="theme-caveat"><Info :size="15" />诗句据本地《摄山志》数据库转录整理，未经原件校勘；题名、作者、文字与标点以原书为准。泛写红叶与山林的诗句，不必然专写栖霞山。</p>
+      </section>
       <section v-if="nav === 'maple'" class="culture-section"><div class="section-heading"><span class="kicker">VISIT INFORMATION</span><h2>游览内容</h2></div><div class="culture-grid"><button v-for="item in cultureTopics" :key="item.id" class="culture-card" v-reveal @click="selectedTopic = item.id"><component :is="item.icon" :size="22" /><span class="culture-copy"><h3>{{ item.title }}</h3><small>{{ item.tag }}</small></span><ArrowRight :size="18" /></button></div></section>
 
       <section v-if="nav === 'chat'" class="content-section chat-page"><div class="section-heading compact"><span class="kicker">TEXT COMPANION</span><h2>问一句，先把选择变清楚。</h2><p>伴游依据已发布的结构化信息回答，缺少核验资料时会明确说明。</p></div><div class="chat-panel"><TransitionGroup name="messages" tag="div" class="chat-messages"><div v-for="(item, index) in messages" :key="index" class="chat-line" :class="item.role"><span v-if="item.role === 'assistant'" class="chat-mark"><ScenicIcon :size="19" /></span><p>{{ item.text }}</p></div><div v-if="loading" key="typing" class="chat-line assistant typing"><span class="chat-mark"><RefreshCw :size="14" /></span><p>正在整理信息<span class="typing-dots">…</span></p></div></TransitionGroup><form class="chat-input" @submit.prevent="sendMessage"><input v-model="message" aria-label="输入问题" placeholder="例如：带老人，想了解路线和设施" maxlength="500" /><button class="primary-btn" type="submit" aria-label="发送"><Send :size="18" /></button></form><div class="chat-suggestions"><button @click="message = '带老人，推荐一条路线'">带老人，推荐路线</button><button @click="message = '哪里有厕所？'">哪里有厕所？</button><button @click="message = '现在枫况怎样？'">现在枫况怎样？</button></div></div></section>
