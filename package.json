@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"pnpm --filter @maple/api dev\" \"pnpm --filter @maple/web dev\"",
     "build": "pnpm --filter @maple/web build && pnpm --filter @maple/api build",
-    "test": "pnpm --filter @maple/api test",
+    "test": "pnpm --filter @maple/web test && pnpm --filter @maple/api test",
     "typecheck": "pnpm --filter @maple/web typecheck && pnpm --filter @maple/api typecheck"
   },
   "devDependencies": {

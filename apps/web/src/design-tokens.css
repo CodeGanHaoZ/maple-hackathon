@@ -91,6 +91,26 @@
   --moss-600: #4e6141; /* 小字（AA 达标） */
   --summer-forest: color-mix(in srgb, var(--moss-600) 72%, var(--indigo-700)); /* 夏日林荫，沿用苔绿与山影 */
 
+  /* 四季纸色：保留暖白表面，底色与分隔线随季节变化。 */
+  --spring-paper-000: #fdfef9;
+  --spring-paper-050: #f8faf1;
+  --spring-paper-100: #f2f6e9;
+  --spring-paper-200: #e8efda;
+  --spring-paper-300: #d3dfc0;
+  --spring-paper-400: #bbcba5;
+  --summer-paper-000: #fafdf9;
+  --summer-paper-050: #f2f8f1;
+  --summer-paper-100: #eaf2e9;
+  --summer-paper-200: #dde9dc;
+  --summer-paper-300: #c5d8c7;
+  --summer-paper-400: #aec5b2;
+  --winter-paper-000: #fcfdfb;
+  --winter-paper-050: #f4f7f8;
+  --winter-paper-100: #edf3f6;
+  --winter-paper-200: #e1eaf0;
+  --winter-paper-300: #cddce6;
+  --winter-paper-400: #b4c8d7;
+
   /* ------------------------------------------------------------------
      7. 银杏 · Ginkgo — 警示、枫红期刻度、票券高亮
      ------------------------------------------------------------------ */

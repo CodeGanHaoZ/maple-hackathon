@@ -20,5 +20,5 @@ export function autumnTone(percent: number | null) {
 }
 
 export function leafCaption(percent: number | null) {
-  return percent === null ? '静候新的观测' : percent < 25 ? '青绿初章' : percent < 50 ? '金黄渐染' : percent < 75 ? '橘红入画' : '绯红正浓'
+  return percent === null ? '暂无有效观测' : percent < 25 ? '转色初期' : percent < 50 ? '逐步转色' : percent < 75 ? '红叶渐多' : '红叶为主'
 }
